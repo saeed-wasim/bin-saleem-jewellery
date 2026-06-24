@@ -1,7 +1,5 @@
 <template>
-  
-    <div class="content">
-      <h1> BS</h1>
-     
-    </div>
+  <p class="text-3xl font-bold underline text-red-900" >
+    Hello world!
+  </p>
 </template>
