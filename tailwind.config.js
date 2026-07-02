@@ -8,7 +8,15 @@ module.exports = {
     "./plugins/**/*.{js,ts}",
   ],
   theme: {
-    extend: {},
+    extend: {
+      colors: {
+        theme: "var(--theme-color)",
+        themeSoft: "var(--theme-color-soft)",
+      },
+      fontFamily: {
+        poppins: ["Poppins", "ui-sans-serif", "system-ui", "sans-serif"],
+      },
+    },
   },
   plugins: [],
 }

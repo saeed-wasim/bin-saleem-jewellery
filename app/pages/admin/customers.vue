@@ -14,7 +14,7 @@
           <p class="text-gray-600">Customers management page</p>
           <div class="flex items-center gap-3">
             <span class="text-sm text-gray-500">{{ customerCount }} customers</span>
-            <button class="bg-[#4E0FA6] text-white px-4 py-2 rounded-lg" @click="openCreateModal">
+            <button class="bg-theme text-white px-4 py-2 rounded-lg" @click="openCreateModal">
               Add Customer
             </button>
           </div>
@@ -71,7 +71,7 @@
             </div>
             <div class="flex justify-end gap-3">
               <button type="button" class="px-4 py-2 rounded-lg border" @click="showModal = false">Cancel</button>
-              <button type="submit" class="px-4 py-2 rounded-lg bg-[#4E0FA6] text-white">Save</button>
+              <button type="submit" class="px-4 py-2 rounded-lg bg-theme text-white">Save</button>
             </div>
           </form>
         </div>
