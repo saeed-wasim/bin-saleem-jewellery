@@ -2,13 +2,13 @@
 import { ref } from "vue";
 import { useRoute } from "vue-router";
 
-import DashboardIcon from "~/assets/css/icons/dashboard.vue";
-import CategoriesIcon from "~/assets/css/icons/categories.vue";
-import OrdersIcon from "~/assets/css/icons/orders.vue";
-import CustomersIcon from "~/assets/css/icons/customers.vue";
-import InventoryIcon from "~/assets/css/icons/inventory.vue";
-import ReviewsIcon from "~/assets/css/icons/reviews.vue";
-import PaymentsIcon from "~/assets/css/icons/payments.vue";
+import DashboardIcon from "~/assets/icons/dashboard.vue";
+import CategoriesIcon from "~/assets/icons/categories.vue";
+import OrdersIcon from "~/assets/icons/orders.vue";
+import CustomersIcon from "~/assets/icons/customers.vue";
+import InventoryIcon from "~/assets/icons/inventory.vue";
+import ReviewsIcon from "~/assets/icons/reviews.vue";
+import PaymentsIcon from "~/assets/icons/payments.vue";
 
 const route = useRoute();
 const isOpen = ref(false);
@@ -80,8 +80,10 @@ const closeSidebar = () => {
       </svg>
     </button>
 
-    <h1 class="ml-4 font-bold text-theme">Bin Saleem Jewellery</h1>
-  </div>
+<h1 class="text-xl font-bold italic text-theme px-4">
+        Bin Saleem
+        <span class="text-gray-400">Jewellery</span>
+      </h1>  </div>
 
   <!-- Overlay -->
   <div

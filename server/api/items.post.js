@@ -6,10 +6,12 @@ export default defineEventHandler(async (event) => {
   const formData = await readFormData(event);
   const name = formData.get('name')?.toString().trim();
   const description = formData.get('description')?.toString().trim();
+  const price = formData.get('price')?.toString().trim();
+  const categoryId = formData.get('categoryId')?.toString().trim();
   const imageFile = formData.get('image');
 
-  if (!name || !description) {
-    throw createError({ statusCode: 400, statusMessage: 'Name and description are required' });
+  if (!name || !description || !price || !categoryId) {
+    throw createError({ statusCode: 400, statusMessage: 'Name, description, price, and category are required' });
   }
 
   if (!imageFile) {
@@ -23,13 +25,12 @@ export default defineEventHandler(async (event) => {
       const buffer = Buffer.from(arrayBuffer);
       const mimeType = imageFile.type || 'image/jpeg';
       imageBase64 = `data:${mimeType};base64,${buffer.toString('base64')}`;
-      console.log('Image converted to base64, length:', imageBase64.length);
     } catch (error) {
       console.error('Error converting image to base64:', error);
     }
   }
 
-  const insert = db.prepare('INSERT INTO categories (name, description, image) VALUES (?, ?, ?)');
-  const result = insert.run(name, description, imageBase64);
-  return { id: result.lastInsertRowid, name, description, image: imageBase64 };
+  const insert = db.prepare('INSERT INTO items (name, description, price, category_id, image) VALUES (?, ?, ?, ?, ?)');
+  const result = insert.run(name, description, parseFloat(price), parseInt(categoryId), imageBase64);
+  return { id: result.lastInsertRowid, name, description, price: parseFloat(price), categoryId: parseInt(categoryId), image: imageBase64 };
 });

@@ -1,18 +1,8 @@
-import { db, initializeDatabase } from '../db.js';
+import { db, initializeDatabase } from '../../db.js';
 
 export default defineEventHandler(async (event) => {
   initializeDatabase();
-  let body = await readBody(event);
-
-  if (typeof body === 'string') {
-    try {
-      body = JSON.parse(body);
-    } catch {
-      body = {};
-    }
-  }
-
-  const id = Number(body?.id);
+  const id = Number(getRouterParam(event, 'id'));
   if (!id) {
     throw createError({ statusCode: 400, statusMessage: 'Category id is required' });
   }

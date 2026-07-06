@@ -4,13 +4,13 @@
     <Sidebar />
 
     <!-- Main Area -->
-    <div class="flex flex-1 flex-col md:ml-64">
+    <div class="w-full md:ml-64">
       <!-- Fixed Header -->
       <Header />
 
       <!-- Scrollable Content -->
-      <main class="flex-1 overflow-y-auto pt-4 bg-gray-50">
-        <div class="px-6">
+      <main class="h-[calc(100vh-64px)] overflow-x-auto overflow-y-auto pt-4 bg-gray-50">
+        <div class="px-6 min-w-full">
           <slot />
         </div>
       </main>

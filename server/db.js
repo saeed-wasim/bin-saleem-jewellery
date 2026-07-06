@@ -25,9 +25,27 @@ export function initializeDatabase() {
     CREATE TABLE IF NOT EXISTS categories (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL UNIQUE,
-      description TEXT NOT NULL
+      description TEXT NOT NULL,
+      image TEXT
+    );
+
+    CREATE TABLE IF NOT EXISTS items (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      description TEXT NOT NULL,
+      price REAL NOT NULL,
+      category_id INTEGER NOT NULL,
+      image TEXT,
+      FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE
     );
   `);
+
+  // Add image column to categories table if it doesn't exist
+  try {
+    db.exec('ALTER TABLE categories ADD COLUMN image TEXT');
+  } catch (error) {
+    // Column already exists, ignore error
+  }
 
   const customerCount = db.prepare('SELECT COUNT(*) AS count FROM customers').get().count;
   if (customerCount === 0) {

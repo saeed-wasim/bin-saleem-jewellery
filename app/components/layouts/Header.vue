@@ -1,6 +1,6 @@
 <script setup>
-import searchIcon from "~/assets/css/icons/search.vue";
-import notificationsIcon from "~/assets/css/icons/notifications.vue";
+import searchIcon from "~/assets/icons/search.vue";
+import notificationsIcon from "~/assets/icons/notifications.vue";
 </script>
 
 <template>

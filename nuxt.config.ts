@@ -5,7 +5,7 @@ export default defineNuxtConfig({
   css: ["~/assets/css/main.css"],
   runtimeConfig: {
     public: {
-      backendUrl: process.env.BACKEND_URL || process.env.API_BASE_URL || "http://localhost:3001",
+      backendUrl: process.env.BACKEND_URL || process.env.API_BASE_URL || "http://localhost:3000",
     },
   },
   postcss: {

@@ -7,7 +7,14 @@ export const API_ENDPOINTS = {
   categories: {
     list: '/api/categories',
     create: '/api/categories',
+    update: '/api/categories',
     delete: '/api/categories',
+  },
+  items: {
+    list: '/api/items',
+    create: '/api/items',
+    update: '/api/items',
+    delete: '/api/items',
   },
 }
 

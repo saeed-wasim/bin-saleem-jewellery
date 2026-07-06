@@ -1,82 +1,23 @@
 import { API_ENDPOINTS, resolveApiEndpoint } from '~/utils/apiEndpoints'
 
-export function useCategoriesActions() {
+export function useItemsActions() {
   return {
-    async fetchCategories() {
+    async fetchItems() {
       this.loading = true
       this.error = null
 
       try {
-        const response = await $fetch(resolveApiEndpoint(API_ENDPOINTS.categories.list))
+        const response = await $fetch(resolveApiEndpoint(API_ENDPOINTS.items.list))
         this.items = Array.isArray(response) ? response : []
       } catch (error) {
-        this.error = error?.data?.statusMessage || error?.message || 'Unable to load categories'
+        this.error = error?.data?.statusMessage || error?.message || 'Unable to load items'
         this.items = []
       } finally {
         this.loading = false
       }
     },
 
-    async createCategory(payload) {
-      this.loading = true
-      this.error = null
-
-      try {
-        const formData = new URLSearchParams({
-          name: payload?.name || '',
-          description: payload?.description || '',
-        })
-
-        const createdCategory = await $fetch(resolveApiEndpoint(API_ENDPOINTS.categories.create), {
-          method: 'POST',
-          body: formData,
-          headers: { 'content-type': 'application/x-www-form-urlencoded' },
-        })
-
-        await this.fetchCategories()
-
-        const { addToast } = useAppToast()
-        addToast('Category added successfully', 'success')
-
-        return createdCategory
-      } catch (error) {
-        const message = error?.data?.statusMessage || error?.message || 'Unable to create category'
-        this.error = message
-
-        const { addToast } = useAppToast()
-        addToast(message, 'error')
-        throw error
-      } finally {
-        this.loading = false
-      }
-    },
-
-    async deleteCategory(id) {
-      this.loading = true
-      this.error = null
-
-      try {
-        await $fetch(`${resolveApiEndpoint(API_ENDPOINTS.categories.delete)}/${id}`, {
-          method: 'DELETE',
-        })
-
-        await this.fetchCategories()
-
-        const { addToast } = useAppToast()
-        addToast('Category deleted successfully', 'success')
-      } catch (error) {
-        const message = error?.data?.statusMessage || error?.message || 'Unable to delete category'
-        this.error = message
-
-        const { addToast } = useAppToast()
-        addToast(message, 'error')
-        throw error
-      } finally {
-        this.loading = false
-      }
-    },
-
-    async updateCategory(id, payload) {
+    async createItem(payload) {
       this.loading = true
       this.error = null
 
@@ -84,23 +25,87 @@ export function useCategoriesActions() {
         const formData = new FormData()
         formData.append('name', payload?.name || '')
         formData.append('description', payload?.description || '')
+        formData.append('price', payload?.price || '')
+        formData.append('categoryId', payload?.categoryId || '')
         if (payload?.image) {
           formData.append('image', payload.image)
         }
 
-        const updatedCategory = await $fetch(`${resolveApiEndpoint(API_ENDPOINTS.categories.update)}/${id}`, {
+        const createdItem = await $fetch(resolveApiEndpoint(API_ENDPOINTS.items.create), {
+          method: 'POST',
+          body: formData,
+        })
+
+        await this.fetchItems()
+
+        const { addToast } = useAppToast()
+        addToast('Item added successfully', 'success')
+
+        return createdItem
+      } catch (error) {
+        const message = error?.data?.statusMessage || error?.message || 'Unable to create item'
+        this.error = message
+
+        const { addToast } = useAppToast()
+        addToast(message, 'error')
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async deleteItem(id) {
+      this.loading = true
+      this.error = null
+
+      try {
+        await $fetch(`${resolveApiEndpoint(API_ENDPOINTS.items.delete)}/${id}`, {
+          method: 'DELETE',
+        })
+
+        await this.fetchItems()
+
+        const { addToast } = useAppToast()
+        addToast('Item deleted successfully', 'success')
+      } catch (error) {
+        const message = error?.data?.statusMessage || error?.message || 'Unable to delete item'
+        this.error = message
+
+        const { addToast } = useAppToast()
+        addToast(message, 'error')
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async updateItem(id, payload) {
+      this.loading = true
+      this.error = null
+
+      try {
+        const formData = new FormData()
+        formData.append('name', payload?.name || '')
+        formData.append('description', payload?.description || '')
+        formData.append('price', payload?.price || '')
+        formData.append('categoryId', payload?.categoryId || '')
+        if (payload?.image) {
+          formData.append('image', payload.image)
+        }
+
+        const updatedItem = await $fetch(`${resolveApiEndpoint(API_ENDPOINTS.items.update)}/${id}`, {
           method: 'PUT',
           body: formData,
         })
 
-        await this.fetchCategories()
+        await this.fetchItems()
 
         const { addToast } = useAppToast()
-        addToast('Category updated successfully', 'success')
+        addToast('Item updated successfully', 'success')
 
-        return updatedCategory
+        return updatedItem
       } catch (error) {
-        const message = error?.data?.statusMessage || error?.message || 'Unable to update category'
+        const message = error?.data?.statusMessage || error?.message || 'Unable to update item'
         this.error = message
 
         const { addToast } = useAppToast()
