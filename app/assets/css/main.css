@@ -1,3 +1,16 @@
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap");
+
+:root {
+  --theme-color: #4E0FA6;
+  --theme-color-soft: rgba(78, 15, 166, 0.1);
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer utilities {
+  .font-poppins {
+    font-family: "Poppins", ui-sans-serif, system-ui, sans-serif;
+  }
+}
