@@ -11,7 +11,8 @@ export function useCategoriesStore() {
       const response = await $fetch('/api/categories')
       items.value = response
     } catch (err) {
-      error.value = err?.message || 'Unable to load categories'
+      console.error('Error fetching categories:', err)
+      error.value = err?.data?.message || err?.message || 'Unable to load categories'
     } finally {
       loading.value = false
     }

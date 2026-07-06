@@ -3,7 +3,6 @@ import { ref } from "vue";
 import PageHeading from "~/components/common/PageHeading.vue";
 import Categories from "./tabs/categories/Categories.vue";
 import Items from "./tabs/items/Items.vue";
-
 const activeTab = ref("categories");
 const showCategoryModal = ref(false);
 const showItemModal = ref(false);
@@ -14,7 +13,6 @@ const itemImagePreview = ref(null);
 const isLoading = ref(false);
 const categoriesRef = ref(null);
 const itemsRef = ref(null);
-const toasts = ref([]);
 const categoriesRefreshTrigger = ref(0);
 
 const { data: categoriesList, error: categoriesError, refresh: refreshCategories } = await useFetch("/api/categories", {
@@ -33,14 +31,6 @@ const tabs = [
   { id: "categories", label: "Categories", component: Categories },
   { id: "items", label: "Items", component: Items },
 ];
-
-function addToast(message, type = "success") {
-  const id = Date.now();
-  toasts.value.push({ id, message, type });
-  setTimeout(() => {
-    toasts.value = toasts.value.filter((toast) => toast.id !== id);
-  }, 2500);
-}
 
 function openCreateCategoryModal() {
   categoryForm.value = { name: "", description: "", image: null };
@@ -77,12 +67,12 @@ function handleItemImageChange(event) {
 
 async function handleCreateCategory() {
   if (!categoryForm.value.name || !categoryForm.value.description) {
-    addToast("Name and description are required", "error");
+    showToast("Name and description are required", "error");
     return;
   }
   
   if (!categoryForm.value.image) {
-    addToast("Image is required", "error");
+    showToast("Image is required", "error");
     return;
   }
 
@@ -100,14 +90,14 @@ async function handleCreateCategory() {
     showCategoryModal.value = false;
     categoryForm.value = { name: "", description: "", image: null };
     categoryImagePreview.value = null;
-    addToast("Category created successfully", "success");
+    showToast("Category created successfully", "success");
     
     // Refresh categories list
     if (categoriesRef.value?.refresh) {
       await categoriesRef.value.refresh();
     }
   } catch (error) {
-    addToast(
+    showToast(
       error?.data?.statusMessage || "Unable to create category",
       "error",
     );
@@ -118,12 +108,12 @@ async function handleCreateCategory() {
 
 async function handleCreateItem() {
   if (!itemForm.value.name || !itemForm.value.description || !itemForm.value.price || !itemForm.value.categoryId) {
-    addToast("Name, description, price, and category are required", "error");
+    showToast("Name, description, price, and category are required", "error");
     return;
   }
   
   if (!itemForm.value.image) {
-    addToast("Image is required", "error");
+    showToast("Image is required", "error");
     return;
   }
 
@@ -143,14 +133,14 @@ async function handleCreateItem() {
     showItemModal.value = false;
     itemForm.value = { name: "", description: "", price: "", categoryId: "", image: null };
     itemImagePreview.value = null;
-    addToast("Item created successfully", "success");
+    showToast("Item created successfully", "success");
     
     // Refresh items list
     if (itemsRef.value?.refresh) {
       await itemsRef.value.refresh();
     }
   } catch (error) {
-    addToast(
+    showToast(
       error?.data?.statusMessage || "Unable to create item",
       "error",
     );
@@ -162,17 +152,15 @@ async function handleCreateItem() {
 
 <template>
   <div class="tw-px-5">
-    <!-- Toasts -->
-    <div class="fixed top-4 right-4 z-[60] space-y-2">
-      <div
-        v-for="toast in toasts"
-        :key="toast.id"
-        class="rounded-lg px-4 py-3 text-sm shadow-lg text-white"
-        :class="toast.type === 'error' ? 'bg-red-600' : 'bg-green-600'"
-      >
-        {{ toast.message }}
-      </div>
-    </div>
+    <!-- Global Toasts -->
+    <CommonToaster
+      v-for="toast in toasts"
+      :key="toast.id"
+      :message="toast.message"
+      :type="toast.type"
+      :duration="toast.duration"
+      @close="removeToast(toast.id)"
+    />
 
     <PageHeading
       heading="Products Management"
@@ -181,7 +169,7 @@ async function handleCreateItem() {
       <template #actions>
         <button
           v-if="activeTab === 'items'"
-          @click="categoriesList.length > 0 ? openCreateItemModal() : addToast('Please create a category first', 'error')"
+          @click="categoriesList.length > 0 ? openCreateItemModal() : showToast('Please create a category first', 'error')"
           :class="[
             'px-5 py-2.5 rounded-md uppercase text-xs font-semibold tracking-wider transition',
             categoriesList.length > 0 
