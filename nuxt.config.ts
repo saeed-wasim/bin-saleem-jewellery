@@ -3,6 +3,11 @@ export default defineNuxtConfig({
   compatibilityDate: "2025-07-15",
   devtools: { enabled: true },
   css: ["~/assets/css/main.css"],
+  runtimeConfig: {
+    public: {
+      backendUrl: process.env.BACKEND_URL || process.env.API_BASE_URL || "http://localhost:3000",
+    },
+  },
   postcss: {
     plugins: {
       tailwindcss: {},
