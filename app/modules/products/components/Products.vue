@@ -1,9 +1,27 @@
 <script setup>
 import { ref } from "vue";
+import EditIcon from "~/assets/icons/edit.vue";
+import DeleteIcon from "~/assets/icons/delete.vue";
 import PageHeading from "~/components/common/PageHeading.vue";
 import Categories from "./tabs/categories/Categories.vue";
 import Items from "./tabs/items/Items.vue";
+const toasts = useState('app-toasts', () => [])
 
+const addToast = (message, type = 'success', duration = 3000) => {
+  const toast = {
+    id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+    message,
+    type,
+    duration
+  }
+  toasts.value = [...toasts.value, toast]
+  if (duration > 0) {
+    setTimeout(() => {
+      toasts.value = toasts.value.filter((t) => t.id !== toast.id)
+    }, duration)
+  }
+  return toast.id
+}
 const activeTab = ref("categories");
 const showCategoryModal = ref(false);
 const showItemModal = ref(false);
@@ -14,7 +32,6 @@ const itemImagePreview = ref(null);
 const isLoading = ref(false);
 const categoriesRef = ref(null);
 const itemsRef = ref(null);
-const toasts = ref([]);
 const categoriesRefreshTrigger = ref(0);
 
 const { data: categoriesList, error: categoriesError, refresh: refreshCategories } = await useFetch("/api/categories", {
@@ -33,14 +50,6 @@ const tabs = [
   { id: "categories", label: "Categories", component: Categories },
   { id: "items", label: "Items", component: Items },
 ];
-
-function addToast(message, type = "success") {
-  const id = Date.now();
-  toasts.value.push({ id, message, type });
-  setTimeout(() => {
-    toasts.value = toasts.value.filter((toast) => toast.id !== id);
-  }, 2500);
-}
 
 function openCreateCategoryModal() {
   categoryForm.value = { name: "", description: "", image: null };
@@ -103,8 +112,13 @@ async function handleCreateCategory() {
     addToast("Category created successfully", "success");
     
     // Refresh categories list
+    categoriesRefreshTrigger.value++;
+    await refreshCategories();
     if (categoriesRef.value?.refresh) {
       await categoriesRef.value.refresh();
+      if (categoriesRef.value?.refreshTrigger) {
+        categoriesRef.value.refreshTrigger.value++;
+      }
     }
   } catch (error) {
     addToast(
@@ -148,6 +162,9 @@ async function handleCreateItem() {
     // Refresh items list
     if (itemsRef.value?.refresh) {
       await itemsRef.value.refresh();
+      if (itemsRef.value?.refreshTrigger) {
+        itemsRef.value.refreshTrigger.value++;
+      }
     }
   } catch (error) {
     addToast(
@@ -162,17 +179,6 @@ async function handleCreateItem() {
 
 <template>
   <div class="tw-px-5">
-    <!-- Toasts -->
-    <div class="fixed top-4 right-4 z-[60] space-y-2">
-      <div
-        v-for="toast in toasts"
-        :key="toast.id"
-        class="rounded-lg px-4 py-3 text-sm shadow-lg text-white"
-        :class="toast.type === 'error' ? 'bg-red-600' : 'bg-green-600'"
-      >
-        {{ toast.message }}
-      </div>
-    </div>
 
     <PageHeading
       heading="Products Management"
@@ -265,7 +271,7 @@ async function handleCreateItem() {
           <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">
             Category Image <span class="text-red-500">*</span>
           </label>
-          <div class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-[var(--theme-color)] transition-colors cursor-pointer">
+          <div class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-[var(--theme-color)] transition-colors cursor-pointer relative">
             <input
               type="file"
               accept="image/*"
@@ -280,13 +286,23 @@ async function handleCreateItem() {
                 </svg>
                 <p class="text-sm">Click to upload image</p>
               </div>
-              <div v-else class="text-gray-700">
+              <div v-else class="relative inline-block w-full">
                 <img 
                   :src="categoryImagePreview" 
                   alt="Preview" 
-                  class="w-full h-auto object-cover rounded-lg mb-2"
+                  class="w-full h-auto object-cover rounded-lg"
                 />
-                <p v-if="categoryForm.image" class="text-sm font-medium">{{ categoryForm.image.name }}</p>
+                <div class="absolute top-2 right-2">
+                  <button
+                    type="button"
+                    @click.prevent="categoryForm.image = null; categoryImagePreview = null"
+                    class="bg-white/90 hover:bg-white p-2 rounded-full shadow-md transition-colors"
+                    title="Remove image"
+                  >
+                    <DeleteIcon />
+                  </button>
+                </div>
+                <p v-if="categoryForm.image" class="text-sm font-medium mt-2">{{ categoryForm.image.name }}</p>
               </div>
             </label>
           </div>
@@ -361,7 +377,7 @@ async function handleCreateItem() {
           <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">
             Item Image <span class="text-red-500">*</span>
           </label>
-          <div class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-[var(--theme-color)] transition-colors cursor-pointer">
+          <div class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-[var(--theme-color)] transition-colors cursor-pointer relative">
             <input
               type="file"
               accept="image/*"
@@ -376,13 +392,23 @@ async function handleCreateItem() {
                 </svg>
                 <p class="text-sm">Click to upload image</p>
               </div>
-              <div v-else class="text-gray-700">
+              <div v-else class="relative inline-block w-full">
                 <img 
                   :src="itemImagePreview" 
                   alt="Preview" 
-                  class="w-full h-auto object-cover rounded-lg mb-2"
+                  class="w-full h-auto object-cover rounded-lg"
                 />
-                <p v-if="itemForm.image" class="text-sm font-medium">{{ itemForm.image.name }}</p>
+                <div class="absolute top-2 right-2">
+                  <button
+                    type="button"
+                    @click.prevent="itemForm.image = null; itemImagePreview = null"
+                    class="bg-white/90 hover:bg-white p-2 rounded-full shadow-md transition-colors"
+                    title="Remove image"
+                  >
+                    <DeleteIcon />
+                  </button>
+                </div>
+                <p v-if="itemForm.image" class="text-sm font-medium mt-2">{{ itemForm.image.name }}</p>
               </div>
             </label>
           </div>

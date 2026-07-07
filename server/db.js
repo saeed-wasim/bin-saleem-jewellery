@@ -4,7 +4,9 @@ import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const dbPath = path.join(__dirname, 'database.sqlite');
+// Store database in project root to avoid deletion during builds
+const projectRoot = path.join(__dirname, '..');
+const dbPath = path.join(projectRoot, 'database.sqlite');
 
 export const db = new Database(dbPath);
 
@@ -13,6 +15,9 @@ if (!db) {
 }
 
 export function initializeDatabase() {
+  // Enable WAL mode for better performance and concurrency
+  db.pragma('journal_mode = WAL');
+  
   db.exec(`
     CREATE TABLE IF NOT EXISTS customers (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
