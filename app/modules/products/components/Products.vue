@@ -182,7 +182,7 @@ async function handleCreateItem() {
 
     <PageHeading
       heading="Products Management"
-      description="Curate and manage your luxury jewelry inventory."
+      description="Create and manage your luxury jewelry inventory."
     >
       <template #actions>
         <button
