@@ -1,8 +1,27 @@
 <script setup>
 import { ref } from "vue";
+import EditIcon from "~/assets/icons/edit.vue";
+import DeleteIcon from "~/assets/icons/delete.vue";
 import PageHeading from "~/components/common/PageHeading.vue";
 import Categories from "./tabs/categories/Categories.vue";
 import Items from "./tabs/items/Items.vue";
+const toasts = useState('app-toasts', () => [])
+
+const addToast = (message, type = 'success', duration = 3000) => {
+  const toast = {
+    id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+    message,
+    type,
+    duration
+  }
+  toasts.value = [...toasts.value, toast]
+  if (duration > 0) {
+    setTimeout(() => {
+      toasts.value = toasts.value.filter((t) => t.id !== toast.id)
+    }, duration)
+  }
+  return toast.id
+}
 const activeTab = ref("categories");
 const showCategoryModal = ref(false);
 const showItemModal = ref(false);
@@ -67,12 +86,12 @@ function handleItemImageChange(event) {
 
 async function handleCreateCategory() {
   if (!categoryForm.value.name || !categoryForm.value.description) {
-    showToast("Name and description are required", "error");
+    addToast("Name and description are required", "error");
     return;
   }
   
   if (!categoryForm.value.image) {
-    showToast("Image is required", "error");
+    addToast("Image is required", "error");
     return;
   }
 
@@ -90,14 +109,19 @@ async function handleCreateCategory() {
     showCategoryModal.value = false;
     categoryForm.value = { name: "", description: "", image: null };
     categoryImagePreview.value = null;
-    showToast("Category created successfully", "success");
+    addToast("Category created successfully", "success");
     
     // Refresh categories list
+    categoriesRefreshTrigger.value++;
+    await refreshCategories();
     if (categoriesRef.value?.refresh) {
       await categoriesRef.value.refresh();
+      if (categoriesRef.value?.refreshTrigger) {
+        categoriesRef.value.refreshTrigger.value++;
+      }
     }
   } catch (error) {
-    showToast(
+    addToast(
       error?.data?.statusMessage || "Unable to create category",
       "error",
     );
@@ -108,12 +132,12 @@ async function handleCreateCategory() {
 
 async function handleCreateItem() {
   if (!itemForm.value.name || !itemForm.value.description || !itemForm.value.price || !itemForm.value.categoryId) {
-    showToast("Name, description, price, and category are required", "error");
+    addToast("Name, description, price, and category are required", "error");
     return;
   }
   
   if (!itemForm.value.image) {
-    showToast("Image is required", "error");
+    addToast("Image is required", "error");
     return;
   }
 
@@ -133,14 +157,17 @@ async function handleCreateItem() {
     showItemModal.value = false;
     itemForm.value = { name: "", description: "", price: "", categoryId: "", image: null };
     itemImagePreview.value = null;
-    showToast("Item created successfully", "success");
+    addToast("Item created successfully", "success");
     
     // Refresh items list
     if (itemsRef.value?.refresh) {
       await itemsRef.value.refresh();
+      if (itemsRef.value?.refreshTrigger) {
+        itemsRef.value.refreshTrigger.value++;
+      }
     }
   } catch (error) {
-    showToast(
+    addToast(
       error?.data?.statusMessage || "Unable to create item",
       "error",
     );
@@ -152,15 +179,6 @@ async function handleCreateItem() {
 
 <template>
   <div class="tw-px-5">
-    <!-- Global Toasts -->
-    <CommonToaster
-      v-for="toast in toasts"
-      :key="toast.id"
-      :message="toast.message"
-      :type="toast.type"
-      :duration="toast.duration"
-      @close="removeToast(toast.id)"
-    />
 
     <PageHeading
       heading="Products Management"
@@ -169,7 +187,7 @@ async function handleCreateItem() {
       <template #actions>
         <button
           v-if="activeTab === 'items'"
-          @click="categoriesList.length > 0 ? openCreateItemModal() : showToast('Please create a category first', 'error')"
+          @click="categoriesList.length > 0 ? openCreateItemModal() : addToast('Please create a category first', 'error')"
           :class="[
             'px-5 py-2.5 rounded-md uppercase text-xs font-semibold tracking-wider transition',
             categoriesList.length > 0 
@@ -253,7 +271,7 @@ async function handleCreateItem() {
           <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">
             Category Image <span class="text-red-500">*</span>
           </label>
-          <div class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-[var(--theme-color)] transition-colors cursor-pointer">
+          <div class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-[var(--theme-color)] transition-colors cursor-pointer relative">
             <input
               type="file"
               accept="image/*"
@@ -268,13 +286,23 @@ async function handleCreateItem() {
                 </svg>
                 <p class="text-sm">Click to upload image</p>
               </div>
-              <div v-else class="text-gray-700">
+              <div v-else class="relative inline-block w-full">
                 <img 
                   :src="categoryImagePreview" 
                   alt="Preview" 
-                  class="w-full h-auto object-cover rounded-lg mb-2"
+                  class="w-full h-auto object-cover rounded-lg"
                 />
-                <p v-if="categoryForm.image" class="text-sm font-medium">{{ categoryForm.image.name }}</p>
+                <div class="absolute top-2 right-2">
+                  <button
+                    type="button"
+                    @click.prevent="categoryForm.image = null; categoryImagePreview = null"
+                    class="bg-white/90 hover:bg-white p-2 rounded-full shadow-md transition-colors"
+                    title="Remove image"
+                  >
+                    <DeleteIcon />
+                  </button>
+                </div>
+                <p v-if="categoryForm.image" class="text-sm font-medium mt-2">{{ categoryForm.image.name }}</p>
               </div>
             </label>
           </div>
@@ -349,7 +377,7 @@ async function handleCreateItem() {
           <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">
             Item Image <span class="text-red-500">*</span>
           </label>
-          <div class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-[var(--theme-color)] transition-colors cursor-pointer">
+          <div class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-[var(--theme-color)] transition-colors cursor-pointer relative">
             <input
               type="file"
               accept="image/*"
@@ -364,13 +392,23 @@ async function handleCreateItem() {
                 </svg>
                 <p class="text-sm">Click to upload image</p>
               </div>
-              <div v-else class="text-gray-700">
+              <div v-else class="relative inline-block w-full">
                 <img 
                   :src="itemImagePreview" 
                   alt="Preview" 
-                  class="w-full h-auto object-cover rounded-lg mb-2"
+                  class="w-full h-auto object-cover rounded-lg"
                 />
-                <p v-if="itemForm.image" class="text-sm font-medium">{{ itemForm.image.name }}</p>
+                <div class="absolute top-2 right-2">
+                  <button
+                    type="button"
+                    @click.prevent="itemForm.image = null; itemImagePreview = null"
+                    class="bg-white/90 hover:bg-white p-2 rounded-full shadow-md transition-colors"
+                    title="Remove image"
+                  >
+                    <DeleteIcon />
+                  </button>
+                </div>
+                <p v-if="itemForm.image" class="text-sm font-medium mt-2">{{ itemForm.image.name }}</p>
               </div>
             </label>
           </div>

@@ -84,7 +84,6 @@
 definePageMeta({
   layout: 'admin'
 })
-
 const store = useCustomersStore()
 const { toasts, addToast } = useAppToast()
 const showModal = ref(false)

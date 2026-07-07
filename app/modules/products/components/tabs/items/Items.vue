@@ -2,12 +2,28 @@
 import EditIcon from "~/assets/icons/edit.vue";
 import DeleteIcon from "~/assets/icons/delete.vue";
 import { ref, computed } from "vue";
+const toasts = useState('app-toasts', () => [])
 
-const toasts = ref([]);
+const addToast = (message, type = 'success', duration = 3000) => {
+  const toast = {
+    id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+    message,
+    type,
+    duration
+  }
+  toasts.value = [...toasts.value, toast]
+  if (duration > 0) {
+    setTimeout(() => {
+      toasts.value = toasts.value.filter((t) => t.id !== toast.id)
+    }, duration)
+  }
+  return toast.id
+}
 const refreshTrigger = ref(0);
 const editingItem = ref(null);
 const editForm = ref({ name: "", description: "", price: "", categoryId: "", image: null });
 const editImagePreview = ref(null);
+const editItemImageInput = ref(null);
 const showDeleteConfirm = ref(false);
 const itemToDelete = ref(null);
 const activeCategoryTab = ref("all");
@@ -50,13 +66,6 @@ const categoryTabs = computed(() => {
   ];
 });
 
-function addToast(message, type = "success") {
-  const id = Date.now();
-  toasts.value.push({ id, message, type });
-  setTimeout(() => {
-    toasts.value = toasts.value.filter((toast) => toast.id !== id);
-  }, 2500);
-}
 
 function handleDeleteItem(item) {
   itemToDelete.value = item;
@@ -127,21 +136,12 @@ async function handleUpdateItem() {
 defineExpose({
   refresh,
   addToast,
+  refreshTrigger,
 });
 </script>
 
 <template>
   <div>
-    <div class="fixed top-4 right-4 z-[60] space-y-2">
-      <div
-        v-for="toast in toasts"
-        :key="toast.id"
-        class="rounded-lg px-4 py-3 text-sm shadow-lg text-white"
-        :class="toast.type === 'error' ? 'bg-red-600' : 'bg-green-600'"
-      >
-        {{ toast.message }}
-      </div>
-    </div>
 
  <div class="border-b border-gray-200 mb-6 w-full">
         <div class="flex gap-4 overflow-x-auto">
@@ -267,8 +267,9 @@ defineExpose({
           <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">
             Item Image
           </label>
-          <div class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-[var(--theme-color)] transition-colors cursor-pointer">
+          <div class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-[var(--theme-color)] transition-colors cursor-pointer relative">
             <input
+              ref="editItemImageInput"
               type="file"
               accept="image/*"
               @change="(e) => {
@@ -280,26 +281,35 @@ defineExpose({
                 }
               }"
               class="hidden"
-              id="edit-item-image"
             />
-            <label for="edit-item-image" class="cursor-pointer">
+            <div @click="editItemImageInput?.click()" class="cursor-pointer">
               <div v-if="!editForm.image && !editImagePreview" class="text-gray-500">
                 <svg class="w-8 h-8 mx-auto mb-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
                 <p class="text-sm">Click to upload new image</p>
               </div>
-              <div v-else class="text-gray-700 w-full">
+              <div v-else class="relative inline-block w-full">
                 <img 
                   v-if="editImagePreview" 
                   :src="editImagePreview" 
                   alt="Preview" 
-                  class="w-full h-auto object-cover rounded-lg mb-2"
+                  class="w-full h-auto object-cover rounded-lg"
                 />
-                <p v-if="editForm.image" class="text-sm font-medium">{{ editForm.image.name }}</p>
-                <p v-else class="text-sm font-medium">Current image</p>
+                <div class="absolute top-2 right-2">
+                  <button
+                    type="button"
+                    @click.prevent="editForm.image = null; editImagePreview = null"
+                    class="bg-white/90 hover:bg-white p-2 rounded-full shadow-md transition-colors"
+                    title="Remove image"
+                  >
+                    <DeleteIcon />
+                  </button>
+                </div>
+                <p v-if="editForm.image" class="text-sm font-medium mt-2">{{ editForm.image.name }}</p>
+                <p v-else class="text-sm font-medium mt-2">Current image</p>
               </div>
-            </label>
+            </div>
           </div>
         </div>
       </form>
