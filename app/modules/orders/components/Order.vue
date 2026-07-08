@@ -127,7 +127,7 @@ function avatarColor(initials) {
    
 
     <!-- Active Transactions -->
-    <div class="bg-white rounded-xl border border-gray-200 p-5 overflow-x-auto">
+    <div class="bg-white rounded-xl border border-gray-200 p-5 custom-scrollbar  overflow-x-auto">
       
     <CommonTable
   :columns="tableColumns"

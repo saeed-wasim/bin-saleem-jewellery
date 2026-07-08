@@ -23,7 +23,7 @@
         <div v-if="loading" class="text-gray-500">Loading customers...</div>
         <div v-else-if="error" class="text-red-600">{{ error }}</div>
         <div v-else-if="customers.length === 0" class="text-gray-500">No customers found.</div>
-        <div v-else class="overflow-x-auto">
+        <div v-else class=" custom-scrollbar overflow-x-auto">
           <table class="min-w-full text-sm">
             <thead class="bg-gray-50">
               <tr>

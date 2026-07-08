@@ -16,8 +16,8 @@ const backendUrl = config.public.backendUrl;
 </script>
 
 <template>
-  <div class="overflow-x-auto">
-    <table class="w-full bg-white border border-gray-200">
+  <div>
+    <table class="w-full bg-white border border-gray-200 custom-scrollbar overflow-x-auto">
       <thead>
         <tr class="bg-gray-50 border-b border-gray-200">
           <th

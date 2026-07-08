@@ -32,7 +32,7 @@ const emit = defineEmits(["close", "confirm"]);
               <CloseIcon />
             </button>
           </div>
-          <div class="p-6 overflow-y-auto h-[calc(100vh-130px)]" >
+          <div class="p-6 custom-scrollbar overflow-y-auto h-[calc(100vh-130px)]" >
             <slot></slot>
           </div>
           <div class="flex justify-end gap-3 p-4 border-t border-gray-200">

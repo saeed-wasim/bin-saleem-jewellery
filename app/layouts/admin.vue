@@ -1,18 +1,14 @@
 <template>
-  <div class="flex h-screen !bg-white">
-    <!-- Sidebar -->
+  <div class=" custom-scrollbar h-screen overflow-hidden bg-gray-50">
     <Sidebar />
 
-    <!-- Main Area -->
-    <div class="w-full md:ml-64">
-      <!-- Fixed Header -->
+    <!-- Right Side -->
+    <div class="md:pl-64 h-screen flex flex-col">
       <Header />
 
-      <!-- Scrollable Content -->
-      <main class="h-[calc(100vh-64px)] overflow-x-auto overflow-y-auto pt-4 bg-gray-50">
-        <div class="px-6 min-w-full">
-          <slot />
-        </div>
+      <!-- Page -->
+      <main class="flex-1 custom-scrollbar  overflow-auto p-6">
+        <slot />
       </main>
     </div>
   </div>
