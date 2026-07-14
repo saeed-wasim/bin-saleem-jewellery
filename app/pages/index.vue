@@ -1,3 +1,3 @@
 <script setup>
-navigateTo('/admin')
+navigateTo('/admin/dashboard')
 </script>

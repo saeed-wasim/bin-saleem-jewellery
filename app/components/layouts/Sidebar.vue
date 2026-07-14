@@ -14,6 +14,7 @@ const route = useRoute();
 const isOpen = ref(false);
 
 const navItems = [
+<<<<<<< Updated upstream
   {
     name: "Dashboard",
     path: "/admin",
@@ -52,6 +53,35 @@ const navItems = [
 ];
 
 const isActive = (path) => route.path === path;
+=======
+  { name: "Dashboard", path: "/admin/dashboard", icon: DashboardIcon },
+  { name: "Products", path: "/admin/products", icon: CategoriesIcon },
+  { name: "Orders", path: "/admin/orders", icon: OrdersIcon },
+  { name: "Customers", path: "/admin/customers", icon: CustomersIcon },
+  { name: "Inventory", path: "/admin/inventory", icon: InventoryIcon },
+  { name: "Reviews", path: "/admin/reviews", icon: ReviewsIcon },
+  { name: "Payments", path: "/admin/payments", icon: PaymentsIcon },
+];
+
+const isActive = (path) => {
+  if (path === "/admin/dashboard") {
+    return route.path === "/admin/dashboard";
+  }
+  if (path === "/admin/orders") {
+    return (
+      route.path === "/admin/orders" ||
+      route.path.startsWith("/admin/order/")
+    );
+  }
+  if (path === "/admin/customers") {
+    return (
+      route.path === "/admin/customers" ||
+      route.path.startsWith("/admin/customer/")
+    );
+  }
+  return route.path === path;
+};
+>>>>>>> Stashed changes
 
 const closeSidebar = () => {
   isOpen.value = false;

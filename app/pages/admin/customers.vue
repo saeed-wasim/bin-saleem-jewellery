@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 <template>
   <NuxtLayout name="admin">
     <div>
@@ -80,49 +81,18 @@
   </NuxtLayout>
 </template>
 
+=======
+>>>>>>> Stashed changes
 <script setup>
+import Customer from '~/modules/customer/components/Customer.vue'
 definePageMeta({
   layout: 'admin'
 })
-const store = useCustomersStore()
-const { toasts, addToast } = useAppToast()
-const showModal = ref(false)
-const form = ref({ name: '', email: '', phone: '', city: '' })
-
-const customers = computed(() => store.items)
-const loading = computed(() => store.loading)
-const error = computed(() => store.error)
-const customerCount = computed(() => store.customerCount)
-
-onMounted(() => {
-  store.fetchCustomers()
-})
-
-function openCreateModal() {
-  form.value = { name: '', email: '', phone: '', city: '' }
-  showModal.value = true
-}
-
-async function handleCreateCustomer() {
-  try {
-    await store.createCustomer({
-      name: form.value.name,
-      email: form.value.email,
-      phone: form.value.phone,
-      city: form.value.city,
-    })
-    showModal.value = false
-    form.value = { name: '', email: '', phone: '', city: '' }
-  } catch (error) {
-    addToast(error?.data?.statusMessage || 'Unable to create customer', 'error')
-  }
-}
-
-async function handleDeleteCustomer(id) {
-  try {
-    await store.deleteCustomer(id)
-  } catch (error) {
-    addToast(error?.data?.statusMessage || 'Unable to delete customer', 'error')
-  }
-}
 </script>
+
+
+<template>
+  <NuxtLayout name="admin">
+   <Customer />
+  </NuxtLayout>
+</template>
