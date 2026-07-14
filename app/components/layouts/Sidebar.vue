@@ -11,6 +11,7 @@ import ReviewsIcon from "~/assets/icons/reviews.vue";
 import PaymentsIcon from "~/assets/icons/payments.vue";
 
 const route = useRoute();
+
 const isOpen = ref(false);
 
 const navItems = [
@@ -48,31 +49,19 @@ const closeSidebar = () => {
 </script>
 
 <template>
-  <!-- Mobile Header -->
+  <!-- Mobile Top Bar -->
   <div
-    class="md:hidden fixed top-0 left-0 right-0 h-16 bg-white shadow z-40 flex items-center px-4"
+    class="fixed top-0 left-0 right-0 h-16 bg-white border-b flex items-center justify-between px-4 md:hidden z-40"
   >
-    <button class="text-gray-700" @click="isOpen = true">
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        class="w-7 h-7"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-      >
-        <path
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          stroke-width="2"
-          d="M4 6h16M4 12h16M4 18h16"
-        />
-      </svg>
+    <button @click="isOpen = true">
+      ☰
     </button>
 
-<h1 class="text-xl font-bold italic text-theme px-4">
-        Bin Saleem
-        <span class="text-gray-400">Jewellery</span>
-      </h1>  </div>
+    <h1 class="font-bold italic text-theme text-lg">
+      Bin Saleem
+      <span class="text-gray-400">Jewellery</span>
+    </h1>
+  </div>
 
   <!-- Overlay -->
   <div
@@ -83,38 +72,47 @@ const closeSidebar = () => {
 
   <!-- Sidebar -->
   <aside
-    class="fixed left-0 top-0 h-screen w-64 bg-white border-r"
+    class="fixed left-0 top-0 z-50 h-screen w-64 bg-white border-r transition-transform duration-300"
     :class="isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'"
   >
-    <!-- Logo -->
-    <div class="px-6 h-16 border-b border-gray-200 flex items-center justify-between">
-      <h1 class="text-xl font-bold italic text-theme">
+    <div
+      class="h-16 border-b flex items-center justify-between px-6"
+    >
+      <h1 class="text-xl italic font-bold text-theme">
         Bin Saleem
         <span class="text-gray-400">Jewellery</span>
       </h1>
 
-      <button class="md:hidden" @click="closeSidebar">✕</button>
+      <button
+        class="md:hidden"
+        @click="closeSidebar"
+      >
+        ✕
+      </button>
     </div>
 
-    <!-- Navigation -->
-    <nav class="flex-1 overflow-y-auto py-6">
+    <nav class="py-6 custom-scrollbar overflow-y-auto h-[calc(100vh-64px)]">
       <ul class="space-y-1">
-        <li v-for="item in navItems" :key="item.name">
+        <li
+          v-for="item in navItems"
+          :key="item.name"
+        >
           <NuxtLink
             :to="item.path"
-            class="flex items-center px-6 py-3 min-w-0 transition-all duration-200"
+            @click="closeSidebar"
+            class="flex items-center px-6 py-3 transition"
             :class="
               isActive(item.path)
-                ? 'text-theme bg-themeSoft border-r-4 border-theme'
-                : 'text-gray-600 hover:text-theme hover:bg-themeSoft'
+                ? 'bg-themeSoft text-theme border-r-4 border-theme'
+                : 'hover:bg-themeSoft text-gray-600 hover:text-theme'
             "
-            @click="closeSidebar"
           >
-            <component :is="item.icon" class="w-5 h-5 mr-3 shrink-0" />
+            <component
+              :is="item.icon"
+              class="mr-3 h-5 w-5"
+            />
 
-            <span class="font-medium truncate">
-              {{ item.name }}
-            </span>
+            {{ item.name }}
           </NuxtLink>
         </li>
       </ul>

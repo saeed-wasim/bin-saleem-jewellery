@@ -144,7 +144,7 @@ defineExpose({
   <div>
 
  <div class="border-b border-gray-200 mb-6 w-full">
-        <div class="flex gap-4 overflow-x-auto">
+        <div class="flex gap-4 custom-scrollbar overflow-x-auto">
           <button
             v-for="tab in categoryTabs"
             :key="tab.id"
