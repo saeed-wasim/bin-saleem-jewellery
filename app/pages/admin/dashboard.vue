@@ -1,3 +1,9 @@
+<script setup>
+definePageMeta({
+  layout: 'admin'
+})
+</script>
+
 <template>
   <NuxtLayout name="admin">
     <div>
@@ -23,9 +29,3 @@
     </div>
   </NuxtLayout>
 </template>
-
-<script setup>
-definePageMeta({
-  layout: 'admin'
-})
-</script>
