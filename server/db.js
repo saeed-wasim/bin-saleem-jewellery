@@ -6,7 +6,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 // Store database in project root to avoid deletion during builds
 const projectRoot = path.join(__dirname, '..');
-const dbPath = path.join(projectRoot, 'database.sqlite');
+const dbPath = process.env.DATABASE_PATH || path.join(projectRoot, 'database.sqlite');
 
 export const db = new Database(dbPath);
 

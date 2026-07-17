@@ -5,7 +5,7 @@ import customersRouter from './routes/customers.js';
 import categoriesRouter from './routes/categories.js';
 
 const app = express();
-const port = process.env.BACKEND_PORT || 3001;
+const port = process.env.ADMIN_PORT || 3001;
 
 app.use(cors());
 app.use(express.json());

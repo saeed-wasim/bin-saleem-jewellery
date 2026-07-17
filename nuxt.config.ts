@@ -7,7 +7,9 @@ export default defineNuxtConfig({
   ],
   runtimeConfig: {
     public: {
-      backendUrl: process.env.BACKEND_URL || process.env.API_BASE_URL || "http://localhost:3001",
+      adminBaseUrl: process.env.ADMIN_BASE_URL || "http://localhost:3001",
+      userBaseUrl: process.env.USER_BASE_URL || "http://localhost:4000",
+      databasePath: process.env.DATABASE_PATH || "./database.sqlite",
     },
   },
   postcss: {
