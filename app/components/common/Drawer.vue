@@ -19,7 +19,7 @@ const emit = defineEmits(["close", "confirm"]);
     <Transition name="modal">
       <div
         v-if="show"
-        class="fixed inset-0 z-50 flex items-center justify-end bg-black/40"
+        class="fixed inset-0 z-[70] flex items-center justify-end bg-black/40"
         @click.self="emit('close')"
       >
         <div class="bg-white h-screen w-full max-w-md shadow-2xl">

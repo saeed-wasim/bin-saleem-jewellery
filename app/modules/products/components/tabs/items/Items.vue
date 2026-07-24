@@ -23,6 +23,7 @@ const refreshTrigger = ref(0);
 const editingItem = ref(null);
 const editForm = ref({ name: "", description: "", price: "", categoryId: "", image: null });
 const editImagePreview = ref(null);
+const editImageRemoved = ref(false);
 const editItemImageInput = ref(null);
 const showDeleteConfirm = ref(false);
 const itemToDelete = ref(null);
@@ -34,12 +35,12 @@ const {
   pending: loading,
   error,
   refresh,
-} = await useFetch("/api/items", {
+} = await useApiFetch("/api/products", {
   default: () => [],
   watch: [refreshTrigger],
 });
 
-const { data: categories, refresh: refreshCategories } = await useFetch("/api/categories", {
+const { data: categories, refresh: refreshCategories } = await useApiFetch("/api/categories", {
   default: () => [],
   watch: [categoriesRefreshTrigger],
 });
@@ -56,7 +57,7 @@ const filteredItems = computed(() => {
   if (activeCategoryTab.value === "all") {
     return items.value;
   }
-  return items.value.filter(item => item.category_id === parseInt(activeCategoryTab.value));
+  return items.value.filter(item => item.categoryId === parseInt(activeCategoryTab.value));
 });
 
 const categoryTabs = computed(() => {
@@ -76,7 +77,7 @@ async function confirmDeleteItem() {
   if (!itemToDelete.value) return;
   
   try {
-    await $fetch(`/api/items/${itemToDelete.value.id}`, {
+    await apiFetch(`/api/products/${itemToDelete.value.id}`, {
       method: "DELETE",
     });
     addToast("Item deleted", "success");
@@ -93,37 +94,68 @@ async function confirmDeleteItem() {
 
 async function handleEditItem(item) {
   await refreshCategories();
-  editingItem.value = item;
+  // Fetch the product fresh by id rather than trusting the (possibly stale) row
+  // object from the list, so the preview always reflects what's really in the DB.
+  const fresh = await apiFetch(`/api/products/${item.id}`);
+  editingItem.value = fresh;
   editForm.value = {
-    name: item.name,
-    description: item.description,
-    price: item.price,
-    categoryId: item.category_id,
+    name: fresh.name,
+    description: fresh.description,
+    price: fresh.price,
+    categoryId: fresh.categoryId,
     image: null
   };
-  editImagePreview.value = item.image || null;
+  editImagePreview.value = fresh.image || null;
+  editImageRemoved.value = false;
+}
+
+function readFileAsDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (ev) => resolve(ev.target.result);
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(file);
+  });
+}
+
+async function handleEditImageChange(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  editImageRemoved.value = false;
+  editImagePreview.value = await readFileAsDataUrl(file);
+  editForm.value.image = file;
+}
+
+function handleRemoveEditImage() {
+  editForm.value.image = null;
+  editImagePreview.value = null;
+  editImageRemoved.value = true;
 }
 
 async function handleUpdateItem() {
   try {
-    const formData = new FormData();
-    formData.append('name', editForm.value.name);
-    formData.append('description', editForm.value.description);
-    formData.append('price', editForm.value.price);
-    formData.append('categoryId', editForm.value.categoryId);
+    const body = {
+      name: editForm.value.name,
+      description: editForm.value.description,
+      price: editForm.value.price,
+      categoryId: editForm.value.categoryId,
+    };
     if (editForm.value.image) {
-      formData.append('image', editForm.value.image);
+      body.image = editImagePreview.value;
+    } else if (editImageRemoved.value) {
+      body.image = null;
     }
-    
-    await $fetch(`/api/items/${editingItem.value.id}`, {
+
+    await apiFetch(`/api/products/${editingItem.value.id}`, {
       method: "PUT",
-      body: formData,
+      body,
     });
-    
+
     addToast("Item updated successfully", "success");
     editingItem.value = null;
     editForm.value = { name: "", description: "", price: "", categoryId: "", image: null };
     editImagePreview.value = null;
+    editImageRemoved.value = false;
     await refresh();
   } catch (error) {
     addToast(
@@ -272,14 +304,7 @@ defineExpose({
               ref="editItemImageInput"
               type="file"
               accept="image/*"
-              @change="(e) => {
-                editForm.image = e.target.files[0];
-                if (e.target.files[0]) {
-                  const reader = new FileReader();
-                  reader.onload = (ev) => editImagePreview.value = ev.target.result;
-                  reader.readAsDataURL(e.target.files[0]);
-                }
-              }"
+              @change="handleEditImageChange"
               class="hidden"
             />
             <div @click="editItemImageInput?.click()" class="cursor-pointer">
@@ -299,7 +324,7 @@ defineExpose({
                 <div class="absolute top-2 right-2">
                   <button
                     type="button"
-                    @click.prevent="editForm.image = null; editImagePreview = null"
+                    @click.prevent="handleRemoveEditImage"
                     class="bg-white/90 hover:bg-white p-2 rounded-full shadow-md transition-colors"
                     title="Remove image"
                   >

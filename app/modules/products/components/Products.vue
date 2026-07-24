@@ -34,7 +34,7 @@ const categoriesRef = ref(null);
 const itemsRef = ref(null);
 const categoriesRefreshTrigger = ref(0);
 
-const { data: categoriesList, error: categoriesError, refresh: refreshCategories } = await useFetch("/api/categories", {
+const { data: categoriesList, error: categoriesError, refresh: refreshCategories } = await useApiFetch("/api/categories", {
   default: () => [],
   watch: [categoriesRefreshTrigger],
 });
@@ -51,20 +51,30 @@ const tabs = [
   { id: "items", label: "Items", component: Items },
 ];
 
+function readFileAsDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (ev) => resolve(ev.target.result);
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(file);
+  });
+}
+
 function openCreateCategoryModal() {
   categoryForm.value = { name: "", description: "", image: null };
   categoryImagePreview.value = null;
   showCategoryModal.value = true;
 }
 
-function handleCategoryImageChange(event) {
+async function handleCategoryImageChange(event) {
   const file = event.target.files[0];
-  categoryForm.value.image = file;
-  if (file) {
-    const reader = new FileReader();
-    reader.onload = (ev) => categoryImagePreview.value = ev.target.result;
-    reader.readAsDataURL(file);
+  if (!file) {
+    categoryForm.value.image = null;
+    categoryImagePreview.value = null;
+    return;
   }
+  categoryImagePreview.value = await readFileAsDataUrl(file);
+  categoryForm.value.image = file;
 }
 
 async function openCreateItemModal() {
@@ -74,14 +84,15 @@ async function openCreateItemModal() {
   showItemModal.value = true;
 }
 
-function handleItemImageChange(event) {
+async function handleItemImageChange(event) {
   const file = event.target.files[0];
-  itemForm.value.image = file;
-  if (file) {
-    const reader = new FileReader();
-    reader.onload = (ev) => itemImagePreview.value = ev.target.result;
-    reader.readAsDataURL(file);
+  if (!file) {
+    itemForm.value.image = null;
+    itemImagePreview.value = null;
+    return;
   }
+  itemImagePreview.value = await readFileAsDataUrl(file);
+  itemForm.value.image = file;
 }
 
 async function handleCreateCategory() {
@@ -97,14 +108,14 @@ async function handleCreateCategory() {
 
   try {
     isLoading.value = true;
-    const formData = new FormData();
-    formData.append('name', categoryForm.value.name);
-    formData.append('description', categoryForm.value.description);
-    formData.append('image', categoryForm.value.image);
-    
-    await $fetch("/api/categories", {
+
+    await apiFetch("/api/categories", {
       method: "POST",
-      body: formData,
+      body: {
+        name: categoryForm.value.name,
+        description: categoryForm.value.description,
+        image: categoryImagePreview.value,
+      },
     });
     showCategoryModal.value = false;
     categoryForm.value = { name: "", description: "", image: null };
@@ -143,16 +154,16 @@ async function handleCreateItem() {
 
   try {
     isLoading.value = true;
-    const formData = new FormData();
-    formData.append('name', itemForm.value.name);
-    formData.append('description', itemForm.value.description);
-    formData.append('price', itemForm.value.price);
-    formData.append('categoryId', itemForm.value.categoryId);
-    formData.append('image', itemForm.value.image);
-    
-    await $fetch("/api/items", {
+
+    await apiFetch("/api/products", {
       method: "POST",
-      body: formData,
+      body: {
+        name: itemForm.value.name,
+        description: itemForm.value.description,
+        price: itemForm.value.price,
+        categoryId: itemForm.value.categoryId,
+        image: itemImagePreview.value,
+      },
     });
     showItemModal.value = false;
     itemForm.value = { name: "", description: "", price: "", categoryId: "", image: null };
