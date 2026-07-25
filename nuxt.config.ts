@@ -7,7 +7,8 @@ export default defineNuxtConfig({
   ],
   runtimeConfig: {
     public: {
-      backendUrl: process.env.BACKEND_URL || process.env.API_BASE_URL || "http://localhost:3001",
+      apiBaseUrl: process.env.API_BASE_URL || "http://localhost:3001",
+      requireAuth: process.env.REQUIRE_AUTH === "true",
     },
   },
   postcss: {
