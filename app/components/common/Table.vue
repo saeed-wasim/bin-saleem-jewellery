@@ -1,23 +1,51 @@
 <script setup>
-defineProps({
+const props = defineProps({
   columns: Array,
   data: Array,
   pagination: Boolean,
-  currentPage: {
+  page: {
     type: Number,
     default: 1,
   },
+  totalPages: {
+    type: Number,
+    default: 1,
+  },
+  total: {
+    type: Number,
+    default: 0,
+  },
+  limit: {
+    type: Number,
+    default: 10,
+  },
 });
 
-const emit = defineEmits(["row-click"]);
+const emit = defineEmits(["row-click", "page-change"]);
 
-const config = useRuntimeConfig();
-const backendUrl = config.public.backendUrl;
+const pageWindow = computed(() => {
+  const span = 5;
+  let start = Math.max(1, props.page - Math.floor(span / 2));
+  let end = Math.min(props.totalPages, start + span - 1);
+  start = Math.max(1, end - span + 1);
+  const pages = [];
+  for (let p = start; p <= end; p++) pages.push(p);
+  return pages;
+});
+
+const rangeStart = computed(() => (props.total === 0 ? 0 : (props.page - 1) * props.limit + 1));
+const rangeEnd = computed(() => Math.min(props.page * props.limit, props.total));
+
+function goTo(page) {
+  if (page < 1 || page > props.totalPages || page === props.page) return;
+  emit("page-change", page);
+}
 </script>
 
 <template>
   <div>
-    <table class="w-full bg-white border border-gray-200 custom-scrollbar overflow-x-auto">
+    <div class="custom-scrollbar overflow-x-auto">
+    <table class="w-full bg-white border border-gray-200">
       <thead>
         <tr class="bg-gray-50 border-b border-gray-200">
           <th
@@ -50,34 +78,58 @@ const backendUrl = config.public.backendUrl;
         </tr>
       </tbody>
     </table>
+    </div>
      <!-- Pagination -->
-      <div v-if="pagination" class="flex items-center justify-between mt-4">
+      <div v-if="pagination && totalPages > 1" class="flex items-center justify-between mt-4">
         <span class="text-xs text-gray-400">
-          Showing 10 of 30 orders
+          Showing {{ rangeStart }}–{{ rangeEnd }} of {{ total }}
         </span>
         <div class="flex items-center gap-1">
           <button
-           
-            class="w-7 h-7 flex items-center justify-center border border-gray-200 rounded-md text-gray-500 hover:bg-gray-50"
+            :disabled="page === 1"
+            @click="goTo(page - 1)"
+            class="w-7 h-7 flex items-center justify-center border border-gray-200 rounded-md text-gray-500 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
           >
             ‹
           </button>
           <button
-            v-for="page in 10"
-            :key="page"
+            v-if="pageWindow[0] > 1"
+            @click="goTo(1)"
+            class="w-7 h-7 flex items-center justify-center rounded-md text-sm border border-gray-200 text-gray-600 hover:bg-gray-50"
+          >
+            1
+          </button>
+          <span v-if="pageWindow[0] > 2" class="px-1 text-gray-400">…</span>
+          <button
+            v-for="p in pageWindow"
+            :key="p"
+            @click="goTo(p)"
             class="w-7 h-7 flex items-center justify-center rounded-md text-sm"
-            :class="page === currentPage
+            :class="p === page
               ? 'bg-purple-800 text-white'
               : 'border border-gray-200 text-gray-600 hover:bg-gray-50'"
           >
-            {{ page }}
+            {{ p }}
+          </button>
+          <span v-if="pageWindow[pageWindow.length - 1] < totalPages - 1" class="px-1 text-gray-400">…</span>
+          <button
+            v-if="pageWindow[pageWindow.length - 1] < totalPages"
+            @click="goTo(totalPages)"
+            class="w-7 h-7 flex items-center justify-center rounded-md text-sm border border-gray-200 text-gray-600 hover:bg-gray-50"
+          >
+            {{ totalPages }}
           </button>
           <button
-            class="w-7 h-7 flex items-center justify-center border border-gray-200 rounded-md text-gray-500 hover:bg-gray-50"
+            :disabled="page === totalPages"
+            @click="goTo(page + 1)"
+            class="w-7 h-7 flex items-center justify-center border border-gray-200 rounded-md text-gray-500 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
           >
             ›
           </button>
         </div>
+      </div>
+      <div v-else-if="pagination && total > 0" class="mt-4 text-xs text-gray-400">
+        Showing {{ rangeStart }}–{{ rangeEnd }} of {{ total }}
       </div>
     <div v-if="data.length === 0" class="text-center py-8 text-gray-500">
       No data available.

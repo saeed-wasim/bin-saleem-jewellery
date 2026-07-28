@@ -6,17 +6,21 @@ function openOrder(row) {
   router.push(`/admin/order/${row.id}`);
 }
 
-// Static stats (replace API calls)
-const stats = ref({
-  totalOrders: 1248,
-  totalOrdersChange: "12% from last month",
-  pendingShipments: 42,
-  pendingShipmentsNote: "Requires immediate attention",
-  netRevenue: "$4.2M",
-  netRevenueChange: "8.4% above target",
+const page = ref(1);
+
+const { data: ordersPage, pending: loading, error: ordersError } = await useApiFetch("/api/orders", {
+  query: computed(() => ({ page: page.value, limit: 10 })),
+  watch: [page],
+  default: () => ({ data: [], pagination: { page: 1, limit: 10, total: 0, totalPages: 1 } }),
 });
 
-// Static table columns
+if (ordersError.value) {
+  console.error("Error fetching orders:", ordersError.value);
+}
+
+const orders = computed(() => ordersPage.value?.data || []);
+const pageMeta = computed(() => ordersPage.value?.pagination || { page: 1, limit: 10, total: 0, totalPages: 1 });
+
 const tableColumns = [
   { key: "orderId", label: "Order ID", width: "100px" },
   { key: "date", label: "Date", width: "100px" },
@@ -27,64 +31,33 @@ const tableColumns = [
   { key: "fulfillment", label: "Fulfillment" },
 ];
 
-// Static transactions data (replace API call)
-const transactions = ref([
-  {
-    id: 1,
-    orderId: "#BS-1001",
-    date: "Oct 24, 2023",
-    customerInitials: "AM",
-    customerName: "Amina Mansour",
-    items: "1x Royal Solitaire Ring",
-    total: "$12,450",
-    payment: "Paid",
-    fulfillment: "Shipped",
-  },
-  {
-    id: 2,
-    orderId: "#BS-1002",
-    date: "Oct 24, 2023",
-    customerInitials: "RK",
-    customerName: "Rohan Kapoor",
-    items: "2x Eternal Gold Cufflinks",
-    total: "$4,200",
-    payment: "Paid",
-    fulfillment: "Processing",
-  },
-  {
-    id: 3,
-    orderId: "#BS-1003",
-    date: "Oct 23, 2023",
-    customerInitials: "LD",
-    customerName: "Lady Diana Spencer",
-    items: "1x Heritage Pearl Choker",
-    total: "$28,900",
-    payment: "Pending",
-    fulfillment: "Processing",
-  },
-  {
-    id: 4,
-    orderId: "#BS-1004",
-    date: "Oct 22, 2023",
-    customerInitials: "ZB",
-    customerName: "Zayn Bakri",
-    items: "1x Diamond Tennis Bracelet",
-    total: "$8,500",
-    payment: "Paid",
-    fulfillment: "Delivered",
-  },
-]);
-
-// Pagination (static)
-const currentPage = ref(1);
-const totalPages = 3;
-const totalOrdersCount = 1248;
-
-function goToPage(page) {
-  if (page >= 1 && page <= totalPages) {
-    currentPage.value = page;
-  }
+function formatDate(value) {
+  return new Date(value).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
+
+function initialsOf(name) {
+  return (name || "?")
+    .split(" ")
+    .filter(Boolean)
+    .map((part) => part[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+}
+
+const transactions = computed(() =>
+  orders.value.map((order) => ({
+    id: order.id,
+    orderId: `#BS-${order.id}`,
+    date: formatDate(order.createdAt),
+    customerInitials: initialsOf(order.customer?.name),
+    customerName: order.customer?.name || "Unknown",
+    items: `${order.items?.length || 0} item(s)`,
+    total: `Rs ${Number(order.total).toLocaleString("en-IN")}`,
+    payment: order.paymentStatus,
+    fulfillment: order.fulfillmentStatus,
+  }))
+);
 
 // Badge color helpers
 function paymentBadgeClass(status) {
@@ -127,11 +100,18 @@ function avatarColor(initials) {
     <!-- Active Transactions -->
     <div class="bg-white rounded-xl border border-gray-200 p-5 custom-scrollbar  overflow-x-auto">
       
+      <div v-if="loading" class="text-gray-500 py-8 text-center">Loading orders...</div>
       <CommonTable
+        v-else
         :columns="tableColumns"
         :data="transactions"
         pagination
+        :page="pageMeta.page"
+        :total-pages="pageMeta.totalPages"
+        :total="pageMeta.total"
+        :limit="pageMeta.limit"
         @row-click="openOrder"
+        @page-change="page = $event"
       >
         <template #cell-orderId="{ row }">
           <span class="text-purple-700 font-medium">{{ row.orderId }}</span>

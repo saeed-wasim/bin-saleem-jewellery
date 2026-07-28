@@ -1,18 +1,41 @@
 <script setup>
-const journey = [
-  {
-    title: "Order Placed",
-    time: "Oct 24, 2023 - 02:14 PM",
-  },
-  {
-    title: "Payment Confirmed",
-    time: "Oct 24, 2023 - 02:20 PM",
-  },
-  {
-    title: "Preparing Order",
-    time: "Oct 24, 2023 - 03:05 PM",
-  },
-];
+const props = defineProps({
+  paymentStatus: { type: String, default: "Pending" },
+  fulfillmentStatus: { type: String, default: "Processing" },
+  createdAt: { type: String, default: "" },
+  updatedAt: { type: String, default: "" },
+});
+
+function formatTime(value) {
+  if (!value) return "";
+  return new Date(value).toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
+
+const fulfillmentOrder = ["Processing", "Shipped", "Delivered"];
+
+const journey = computed(() => {
+  const steps = [{ title: "Order Placed", time: formatTime(props.createdAt) }];
+
+  if (props.paymentStatus === "Paid") {
+    steps.push({ title: "Payment Confirmed", time: formatTime(props.createdAt) });
+  }
+
+  const currentIndex = fulfillmentOrder.indexOf(props.fulfillmentStatus);
+  fulfillmentOrder.slice(0, currentIndex + 1).forEach((status) => {
+    steps.push({
+      title: status === "Processing" ? "Preparing Order" : status,
+      time: formatTime(props.updatedAt),
+    });
+  });
+
+  return steps;
+});
 </script>
 
 <template>

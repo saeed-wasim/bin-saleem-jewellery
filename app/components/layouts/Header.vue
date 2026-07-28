@@ -2,13 +2,7 @@
 import searchIcon from "~/assets/icons/search.vue";
 import notificationsIcon from "~/assets/icons/notifications.vue";
 
-const { user, logout } = useAuth();
-const router = useRouter();
-
-function handleLogout() {
-  logout();
-  router.push("/admin/login");
-}
+const { user } = useAuth();
 </script>
 
 <template>
@@ -35,13 +29,10 @@ function handleLogout() {
       </button>
 
       <div v-if="user" class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center text-sm font-semibold">
+          {{ user.name?.charAt(0) }}
+        </div>
         <span class="text-sm text-gray-600 hidden sm:inline">{{ user.name }}</span>
-        <button
-          @click="handleLogout"
-          class="text-xs font-semibold uppercase tracking-wider text-gray-600 hover:text-gray-900 border rounded-full px-4 py-2 transition"
-        >
-          Logout
-        </button>
       </div>
     </div>
   </header>

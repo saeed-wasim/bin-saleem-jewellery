@@ -9,10 +9,21 @@ import CustomersIcon from "~/assets/icons/customers.vue";
 import InventoryIcon from "~/assets/icons/inventory.vue";
 import ReviewsIcon from "~/assets/icons/reviews.vue";
 import PaymentsIcon from "~/assets/icons/payments.vue";
+import LogoutIcon from "~/assets/icons/logout.vue";
 
 const route = useRoute();
+const router = useRouter();
+const { logout } = useAuth();
 
 const isOpen = ref(false);
+const showLogoutConfirm = ref(false);
+
+function handleLogout() {
+  logout();
+  showLogoutConfirm.value = false;
+  isOpen.value = false;
+  router.push("/admin/login");
+}
 
 const navItems = [
   { name: "Dashboard", path: "/admin/dashboard", icon: DashboardIcon },
@@ -72,11 +83,11 @@ const closeSidebar = () => {
 
   <!-- Sidebar -->
   <aside
-    class="fixed left-0 top-0 z-50 h-screen w-64 bg-white border-r transition-transform duration-300"
+    class="fixed left-0 top-0 z-50 h-screen w-64 bg-white border-r transition-transform duration-300 flex flex-col"
     :class="isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'"
   >
     <div
-      class="h-16 border-b flex items-center justify-between px-6"
+      class="h-16 border-b flex items-center justify-between px-6 shrink-0"
     >
       <h1 class="text-xl italic font-bold text-theme">
         Bin Saleem
@@ -91,7 +102,7 @@ const closeSidebar = () => {
       </button>
     </div>
 
-    <nav class="py-6 custom-scrollbar overflow-y-auto h-[calc(100vh-64px)]">
+    <nav class="py-6 custom-scrollbar overflow-y-auto flex-1">
       <ul class="space-y-1">
         <li
           v-for="item in navItems"
@@ -117,5 +128,28 @@ const closeSidebar = () => {
         </li>
       </ul>
     </nav>
+
+    <!-- Logout — pinned as the last option, always visible -->
+    <div class="border-t border-gray-100 p-3 shrink-0">
+      <button
+        type="button"
+        @click="showLogoutConfirm = true"
+        class="flex w-full items-center rounded-lg px-3 py-3 text-red-600 transition hover:bg-red-50"
+      >
+        <LogoutIcon class="mr-3 h-5 w-5" />
+        Logout
+      </button>
+    </div>
   </aside>
+
+  <CommonConfirmModal
+    :show="showLogoutConfirm"
+    title="Log Out"
+    message="Are you sure you want to log out of the admin panel?"
+    confirm-text="Logout"
+    cancel-text="Cancel"
+    type="danger"
+    @close="showLogoutConfirm = false"
+    @confirm="handleLogout"
+  />
 </template>

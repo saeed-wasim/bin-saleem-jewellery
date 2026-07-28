@@ -11,14 +11,42 @@ const tableColumns = [
   { key: "customer", label: "Customer" },
   { key: "phone", label: "Phone" },
   { key: "city", label: "City" },
+  { key: "orders", label: "Orders" },
+  { key: "spent", label: "Total Spent" },
 ];
 
+const page = ref(1);
+
 const {
-  data: customers,
+  data: customersPage,
   pending: loading,
   error,
 } = await useApiFetch("/api/customers", {
-  default: () => [],
+  query: computed(() => ({ page: page.value, limit: 10 })),
+  watch: [page],
+  default: () => ({ data: [], pagination: { page: 1, limit: 10, total: 0, totalPages: 1 } }),
+});
+
+const customers = computed(() => customersPage.value?.data || []);
+const pageMeta = computed(() => customersPage.value?.pagination || { page: 1, limit: 10, total: 0, totalPages: 1 });
+
+// Site-wide totals, independent of which page of customers is currently shown.
+const { data: summary } = await useApiFetch("/api/dashboard/summary");
+
+function formatCurrency(value) {
+  return `Rs ${Number(value || 0).toLocaleString("en-IN")}`;
+}
+
+const stats = computed(() => {
+  if (!summary.value) return [];
+  const avgOrderValue = summary.value.totalOrders > 0 ? summary.value.totalRevenue / summary.value.totalOrders : 0;
+
+  return [
+    { label: "Total Customers", value: summary.value.totalCustomers, icon: "users" },
+    { label: "Total Orders", value: summary.value.totalOrders, icon: "cart" },
+    { label: "Total Revenue", value: formatCurrency(summary.value.totalRevenue), icon: "wallet" },
+    { label: "Avg. Order Value", value: formatCurrency(avgOrderValue), icon: "chart" },
+  ];
 });
 </script>
 
@@ -30,7 +58,7 @@ const {
     />
 
 <div>
-<Cards/></div>
+<Cards :stats="stats"/></div>
 
     <!-- Customers -->
     <div class="bg-white rounded-xl border border-gray-200 p-5 custom-scrollbar overflow-x-auto">
@@ -41,7 +69,12 @@ const {
         :columns="tableColumns"
         :data="customers"
         pagination
+        :page="pageMeta.page"
+        :total-pages="pageMeta.totalPages"
+        :total="pageMeta.total"
+        :limit="pageMeta.limit"
         @row-click="openOrder"
+        @page-change="page = $event"
       >
         <template #cell-customer="{ row }">
           <div class="flex items-center gap-3">
@@ -65,6 +98,16 @@ const {
 
         <template #cell-city="{ row }">
           {{ row.city }}
+        </template>
+
+        <template #cell-orders="{ row }">
+          <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-purple-50 text-purple-700">
+            {{ row.orderCount || 0 }}
+          </span>
+        </template>
+
+        <template #cell-spent="{ row }">
+          <span class="font-semibold text-gray-800">{{ formatCurrency(row.totalSpent) }}</span>
         </template>
       </CommonTable>
     </div>

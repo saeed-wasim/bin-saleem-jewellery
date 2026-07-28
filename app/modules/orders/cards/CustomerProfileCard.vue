@@ -1,11 +1,19 @@
 <script setup>
-const customer = {
-  initials: "AV",
-  name: "Alexander Vanguard",
-  tier: "Platinum VVIP",
-  email: "a.vanguard@royal.ae",
-  phone: "+971 50 123 4567",
-};
+const props = defineProps({
+  name: { type: String, default: "" },
+  email: { type: String, default: "" },
+  phone: { type: String, default: "" },
+});
+
+const initials = computed(() =>
+  (props.name || "?")
+    .split(" ")
+    .filter(Boolean)
+    .map((part) => part[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase()
+);
 </script>
 
 <template>
@@ -18,23 +26,19 @@ const customer = {
       <div
         class="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center font-bold text-purple-700"
       >
-        {{ customer.initials }}
+        {{ initials }}
       </div>
 
       <div>
         <h4 class="font-semibold">
-          {{ customer.name }}
+          {{ name }}
         </h4>
-
-        <p class="text-sm text-gray-500">
-          Tier: {{ customer.tier }}
-        </p>
       </div>
     </div>
 
     <div class="mt-6 space-y-3 text-sm">
-      <p>{{ customer.email }}</p>
-      <p>{{ customer.phone }}</p>
+      <p>{{ email }}</p>
+      <p>{{ phone }}</p>
     </div>
   </div>
 </template>

@@ -20,21 +20,30 @@ const addToast = (message, type = 'success', duration = 3000) => {
   return toast.id
 }
 const refreshTrigger = ref(0);
+const page = ref(1);
 const editingCategory = ref(null);
 const editForm = ref({ name: "", description: "", image: null });
 const editImagePreview = ref(null);
 const editImageRemoved = ref(false);
 const editCategoryImageInput = ref(null);
 
+watch(refreshTrigger, () => {
+  page.value = 1;
+});
+
 const {
-  data: categories,
+  data: categoriesPage,
   pending: loading,
   error,
   refresh,
 } = await useApiFetch("/api/categories", {
-  default: () => [],
-  watch: [refreshTrigger],
+  query: computed(() => ({ page: page.value, limit: 10 })),
+  default: () => ({ data: [], pagination: { page: 1, limit: 10, total: 0, totalPages: 1 } }),
+  watch: [refreshTrigger, page],
 });
+
+const categories = computed(() => categoriesPage.value?.data || []);
+const pageMeta = computed(() => categoriesPage.value?.pagination || { page: 1, limit: 10, total: 0, totalPages: 1 });
 
 const tableColumns = [
   { key: "image", label: "Image", width: "100px" },
@@ -117,7 +126,7 @@ async function handleUpdateCategory() {
     if (editForm.value.image) {
       body.image = editImagePreview.value;
     } else if (editImageRemoved.value) {
-      body.image = null;
+      body.image = NO_IMAGE_PLACEHOLDER;
     }
 
     await apiFetch(`/api/categories/${editingCategory.value.id}`, {
@@ -152,16 +161,24 @@ defineExpose({
     <div class="bg-white rounded-lg shadow p-6">
       <div v-if="loading" class="text-gray-500">Loading categories...</div>
       <div v-else-if="error" class="text-red-600">{{ error }}</div>
-      <CommonTable v-else :columns="tableColumns" :data="categories">
+      <CommonTable
+        v-else
+        :columns="tableColumns"
+        :data="categories"
+        pagination
+        :page="pageMeta.page"
+        :total-pages="pageMeta.totalPages"
+        :total="pageMeta.total"
+        :limit="pageMeta.limit"
+        @page-change="page = $event"
+      >
         <template #cell-image="{ row }">
           <img
-            v-if="row.image && row.image.startsWith('data:image')"
-            :src="row.image"
+            :src="row.image && row.image.startsWith('data:image') ? row.image : NO_IMAGE_PLACEHOLDER"
             :alt="row.name"
             class="w-12 h-12 rounded-lg object-cover"
-            @error="(e) => e.target.style.display = 'none'"
+            @error="(e) => e.target.src = NO_IMAGE_PLACEHOLDER"
           />
-          <span v-else class="text-gray-400">No image</span>
         </template>
         <template #cell-actions="{ row }">
           <div class="flex gap-2">

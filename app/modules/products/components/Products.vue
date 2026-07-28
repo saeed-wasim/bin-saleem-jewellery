@@ -25,7 +25,7 @@ const addToast = (message, type = 'success', duration = 3000) => {
 const activeTab = ref("categories");
 const showCategoryModal = ref(false);
 const showItemModal = ref(false);
-const itemForm = ref({ name: "", description: "", price: "", categoryId: "", image: null });
+const itemForm = ref({ name: "", description: "", price: "", categoryId: "", image: null, color: "", variantGroupId: "", length: "", width: "", stock: "" });
 const categoryForm = ref({ name: "", description: "", image: null });
 const categoryImagePreview = ref(null);
 const itemImagePreview = ref(null);
@@ -78,7 +78,7 @@ async function handleCategoryImageChange(event) {
 }
 
 async function openCreateItemModal() {
-  itemForm.value = { name: "", description: "", price: "", categoryId: "", image: null };
+  itemForm.value = { name: "", description: "", price: "", categoryId: "", image: null, color: "", variantGroupId: "", length: "", width: "", stock: "" };
   itemImagePreview.value = null;
   refreshCategories();
   showItemModal.value = true;
@@ -142,8 +142,8 @@ async function handleCreateCategory() {
 }
 
 async function handleCreateItem() {
-  if (!itemForm.value.name || !itemForm.value.description || !itemForm.value.price || !itemForm.value.categoryId) {
-    addToast("Name, description, price, and category are required", "error");
+  if (!itemForm.value.name || !itemForm.value.description || !itemForm.value.price || !itemForm.value.categoryId || itemForm.value.stock === "") {
+    addToast("Name, description, price, stock quantity, and category are required", "error");
     return;
   }
   
@@ -163,10 +163,15 @@ async function handleCreateItem() {
         price: itemForm.value.price,
         categoryId: itemForm.value.categoryId,
         image: itemImagePreview.value,
+        color: itemForm.value.color,
+        variantGroupId: itemForm.value.variantGroupId,
+        length: itemForm.value.length,
+        width: itemForm.value.width,
+        stock: itemForm.value.stock,
       },
     });
     showItemModal.value = false;
-    itemForm.value = { name: "", description: "", price: "", categoryId: "", image: null };
+    itemForm.value = { name: "", description: "", price: "", categoryId: "", image: null, color: "", variantGroupId: "", length: "", width: "", stock: "" };
     itemImagePreview.value = null;
     addToast("Item created successfully", "success");
     
@@ -367,6 +372,19 @@ async function handleCreateItem() {
         </div>
         <div>
           <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">
+            Stock Quantity <span class="text-red-500">*</span>
+          </label>
+          <input
+            v-model.number="itemForm.stock"
+            type="number"
+            min="0"
+            placeholder="Enter stock quantity"
+            class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-[var(--theme-color)]"
+            required
+          />
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">
             Category <span class="text-red-500">*</span>
           </label>
           <select
@@ -383,6 +401,57 @@ async function handleCreateItem() {
           <p v-if="categoriesList.length === 0" class="text-red-500 text-xs mt-1">
             No categories available. Please create a category first in the Categories tab.
           </p>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">
+            Color
+          </label>
+          <input
+            v-model="itemForm.color"
+            type="text"
+            placeholder="e.g. Gold-Clear"
+            class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-[var(--theme-color)]"
+          />
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">
+            Variant Group ID
+          </label>
+          <input
+            v-model="itemForm.variantGroupId"
+            type="number"
+            placeholder="e.g. 39147"
+            class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-[var(--theme-color)]"
+          />
+          <p class="text-gray-500 text-xs mt-1">
+            Use the same number across color variants of the same design to link them together.
+          </p>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">
+              Length (cm)
+            </label>
+            <input
+              v-model="itemForm.length"
+              type="number"
+              step="0.1"
+              placeholder="e.g. 1.2"
+              class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-[var(--theme-color)]"
+            />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">
+              Width (cm)
+            </label>
+            <input
+              v-model="itemForm.width"
+              type="number"
+              step="0.1"
+              placeholder="e.g. 1.2"
+              class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-[var(--theme-color)]"
+            />
+          </div>
         </div>
         <div>
           <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">

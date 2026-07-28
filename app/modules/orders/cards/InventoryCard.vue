@@ -1,24 +1,15 @@
 <script setup>
-const items = [
-  {
-    id: 1,
-    image: "https://via.placeholder.com/60",
-    name: "Eternal Grace Diamond Ring",
-    details: "Platinum, 2.0ct VVS1",
-    sku: "RG-PLAT-8821",
-    qty: 1,
-    price: "$18,500.00",
-  },
-  {
-    id: 2,
-    image: "https://via.placeholder.com/60",
-    name: "Sapphire Cascade Earrings",
-    details: "18k Gold, Royal Blue Sapphires",
-    sku: "ER-GOLD-4452",
-    qty: 1,
-    price: "$7,200.00",
-  },
-];
+const props = defineProps({
+  items: { type: Array, default: () => [] },
+  subtotal: { type: [Number, String], default: 0 },
+  gst: { type: [Number, String], default: 0 },
+  shipping: { type: [Number, String], default: 0 },
+  total: { type: [Number, String], default: 0 },
+});
+
+function formatPrice(value) {
+  return `Rs ${Number(value).toLocaleString("en-IN")}`;
+}
 </script>
 
 <template>
@@ -31,7 +22,6 @@ const items = [
       <thead class="border-b">
         <tr class="text-xs text-gray-500 uppercase">
           <th class="text-left pb-3">Product</th>
-          <th>SKU</th>
           <th>Qty</th>
           <th class="text-right">Price</th>
         </tr>
@@ -46,8 +36,9 @@ const items = [
           <td class="py-4">
             <div class="flex gap-3">
               <img
-                :src="item.image"
+                :src="item.image || NO_IMAGE_PLACEHOLDER"
                 class="w-14 h-14 rounded object-cover"
+                @error="(e) => e.target.src = NO_IMAGE_PLACEHOLDER"
               />
 
               <div>
@@ -56,14 +47,12 @@ const items = [
                 </p>
 
                 <p class="text-sm text-gray-500">
-                  {{ item.details }}
+                  <span v-if="item.color">{{ item.color }}</span>
+                  <span v-if="item.color && item.size"> &middot; </span>
+                  <span v-if="item.size">Size {{ item.size }}</span>
                 </p>
               </div>
             </div>
-          </td>
-
-          <td class="text-center">
-            {{ item.sku }}
           </td>
 
           <td class="text-center">
@@ -71,7 +60,7 @@ const items = [
           </td>
 
           <td class="text-right font-semibold">
-            {{ item.price }}
+            {{ formatPrice(item.price) }}
           </td>
         </tr>
       </tbody>
@@ -80,24 +69,24 @@ const items = [
     <div class="mt-8 space-y-2 text-sm">
       <div class="flex justify-between">
         <span>Subtotal</span>
-        <span>$25,700.00</span>
+        <span>{{ formatPrice(subtotal) }}</span>
       </div>
 
       <div class="flex justify-between">
-        <span>Tax (5%)</span>
-        <span>$1,285.00</span>
+        <span>GST (3%)</span>
+        <span>{{ formatPrice(gst) }}</span>
       </div>
 
       <div class="flex justify-between">
         <span>Shipping</span>
-        <span class="text-green-600">Complimentary</span>
+        <span class="text-green-600">{{ Number(shipping) > 0 ? formatPrice(shipping) : "Complimentary" }}</span>
       </div>
 
       <hr>
 
       <div class="flex justify-between text-xl font-bold text-purple-700">
         <span>Total</span>
-        <span>$26,985.00</span>
+        <span>{{ formatPrice(total) }}</span>
       </div>
     </div>
   </div>
