@@ -9,6 +9,7 @@ function openOrder(row) {
 const page = ref(1);
 
 const { data: ordersPage, pending: loading, error: ordersError } = await useApiFetch("/api/orders", {
+  key: "admin-orders-list",
   query: computed(() => ({ page: page.value, limit: 10 })),
   watch: [page],
   default: () => ({ data: [], pagination: { page: 1, limit: 10, total: 0, totalPages: 1 } }),
@@ -36,13 +37,8 @@ function formatDate(value) {
 }
 
 function initialsOf(name) {
-  return (name || "?")
-    .split(" ")
-    .filter(Boolean)
-    .map((part) => part[0])
-    .slice(0, 2)
-    .join("")
-    .toUpperCase();
+  const trimmed = (name || "").trim();
+  return trimmed ? trimmed.charAt(0).toUpperCase() : "?";
 }
 
 const transactions = computed(() =>
@@ -51,7 +47,9 @@ const transactions = computed(() =>
     orderId: `#BS-${order.id}`,
     date: formatDate(order.createdAt),
     customerInitials: initialsOf(order.customer?.name),
+    customerPicture: order.customer?.picture || null,
     customerName: order.customer?.name || "Unknown",
+    customerEmail: order.customer?.email || "",
     items: `${order.items?.length || 0} item(s)`,
     total: `Rs ${Number(order.total).toLocaleString("en-IN")}`,
     payment: order.paymentStatus,
@@ -119,13 +117,23 @@ function avatarColor(initials) {
 
         <template #cell-customer="{ row }">
           <div class="flex items-center gap-2">
+            <img
+              v-if="row.customerPicture"
+              :src="row.customerPicture"
+              :alt="row.customerName"
+              class="w-7 h-7 rounded-full object-cover shrink-0"
+            />
             <span
-              class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold"
+              v-else
+              class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold shrink-0"
               :class="avatarColor(row.customerInitials)"
             >
               {{ row.customerInitials }}
             </span>
-            <span class="text-gray-800">{{ row.customerName }}</span>
+            <div class="min-w-0">
+              <p class="text-gray-800 truncate">{{ row.customerName }}</p>
+              <p v-if="row.customerEmail" class="text-xs text-gray-400 truncate">{{ row.customerEmail }}</p>
+            </div>
           </div>
         </template>
 

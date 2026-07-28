@@ -1,4 +1,6 @@
 <script setup>
+import PasswordInput from "~/components/common/PasswordInput.vue";
+
 const email = ref('')
 const password = ref('')
 const error = ref(null)
@@ -44,12 +46,7 @@ async function handleSubmit() {
           <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">
             Password
           </label>
-          <input
-            v-model="password"
-            type="password"
-            required
-            class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-[var(--theme-color)]"
-          />
+          <PasswordInput v-model="password" required autocomplete="current-password" />
         </div>
 
         <p v-if="error" class="text-sm text-red-600">{{ error }}</p>

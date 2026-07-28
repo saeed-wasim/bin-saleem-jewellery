@@ -3,17 +3,13 @@ const props = defineProps({
   name: { type: String, default: "" },
   email: { type: String, default: "" },
   phone: { type: String, default: "" },
+  picture: { type: String, default: null },
 });
 
-const initials = computed(() =>
-  (props.name || "?")
-    .split(" ")
-    .filter(Boolean)
-    .map((part) => part[0])
-    .slice(0, 2)
-    .join("")
-    .toUpperCase()
-);
+const initials = computed(() => {
+  const trimmed = (props.name || "").trim();
+  return trimmed ? trimmed.charAt(0).toUpperCase() : "?";
+});
 </script>
 
 <template>
@@ -23,8 +19,15 @@ const initials = computed(() =>
     </h3>
 
     <div class="flex gap-4">
+      <img
+        v-if="picture"
+        :src="picture"
+        :alt="name"
+        class="w-12 h-12 rounded-full object-cover shrink-0"
+      />
       <div
-        class="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center font-bold text-purple-700"
+        v-else
+        class="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center font-bold text-purple-700 shrink-0"
       >
         {{ initials }}
       </div>

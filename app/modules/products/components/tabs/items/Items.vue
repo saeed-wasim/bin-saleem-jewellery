@@ -66,6 +66,7 @@ const tableColumns = [
   { key: "name", label: "Item Name", width: "200px" },
   { key: "description", label: "Description", width: "auto" },
   { key: "price", label: "Price", width: "100px" },
+  { key: "stock", label: "Stock", width: "100px" },
   { key: "actions", label: "Actions", width: "100px" },
 ];
 
@@ -240,6 +241,18 @@ defineExpose({
         </template>
         <template #cell-price="{ row }">
           {{ row.price ? `$${parseFloat(row.price).toFixed(2)}` : '-' }}
+        </template>
+        <template #cell-stock="{ row }">
+          <span
+            class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium"
+            :class="row.stock <= 0
+              ? 'bg-red-50 text-red-700'
+              : row.stock <= row.lowStockThreshold
+                ? 'bg-amber-50 text-amber-700'
+                : 'bg-green-50 text-green-700'"
+          >
+            {{ row.stock }}
+          </span>
         </template>
         <template #cell-actions="{ row }">
           <div class="flex gap-2">

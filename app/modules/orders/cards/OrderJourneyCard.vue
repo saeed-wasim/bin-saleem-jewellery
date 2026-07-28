@@ -3,7 +3,8 @@ const props = defineProps({
   paymentStatus: { type: String, default: "Pending" },
   fulfillmentStatus: { type: String, default: "Processing" },
   createdAt: { type: String, default: "" },
-  updatedAt: { type: String, default: "" },
+  shippedAt: { type: String, default: "" },
+  deliveredAt: { type: String, default: "" },
 });
 
 function formatTime(value) {
@@ -17,8 +18,6 @@ function formatTime(value) {
   });
 }
 
-const fulfillmentOrder = ["Processing", "Shipped", "Delivered"];
-
 const journey = computed(() => {
   const steps = [{ title: "Order Placed", time: formatTime(props.createdAt) }];
 
@@ -26,13 +25,15 @@ const journey = computed(() => {
     steps.push({ title: "Payment Confirmed", time: formatTime(props.createdAt) });
   }
 
-  const currentIndex = fulfillmentOrder.indexOf(props.fulfillmentStatus);
-  fulfillmentOrder.slice(0, currentIndex + 1).forEach((status) => {
-    steps.push({
-      title: status === "Processing" ? "Preparing Order" : status,
-      time: formatTime(props.updatedAt),
-    });
-  });
+  steps.push({ title: "Preparing Order", time: formatTime(props.createdAt) });
+
+  if (props.fulfillmentStatus === "Shipped" || props.fulfillmentStatus === "Delivered") {
+    steps.push({ title: "Shipped", time: formatTime(props.shippedAt) });
+  }
+
+  if (props.fulfillmentStatus === "Delivered") {
+    steps.push({ title: "Delivered", time: formatTime(props.deliveredAt) });
+  }
 
   return steps;
 });

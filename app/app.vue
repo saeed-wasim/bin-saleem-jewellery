@@ -12,7 +12,7 @@ const removeToast = (id) => {
     <NuxtPage />
     
     <!-- Global Toaster -->
-    <div class="fixed top-4 right-4 z-[60] space-y-2">
+    <div class="fixed top-4 right-4 z-[100] space-y-2">
       <CommonToaster
         v-for="toast in toasts"
         :key="toast.id"

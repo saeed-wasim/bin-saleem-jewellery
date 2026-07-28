@@ -28,6 +28,7 @@ export function useApiFetch(path, options = {}) {
   })
 
   return useFetch(path, {
+    server: false,
     baseURL: config.public.apiBaseUrl,
     ...options,
     headers,

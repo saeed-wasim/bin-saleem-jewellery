@@ -31,7 +31,7 @@ const customers = computed(() => customersPage.value?.data || []);
 const pageMeta = computed(() => customersPage.value?.pagination || { page: 1, limit: 10, total: 0, totalPages: 1 });
 
 // Site-wide totals, independent of which page of customers is currently shown.
-const { data: summary } = await useApiFetch("/api/dashboard/summary");
+const { data: summary } = await useApiFetch("/api/dashboard/summary", { key: "admin-customers-dashboard-summary" });
 
 function formatCurrency(value) {
   return `Rs ${Number(value || 0).toLocaleString("en-IN")}`;
@@ -78,8 +78,17 @@ const stats = computed(() => {
       >
         <template #cell-customer="{ row }">
           <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center text-sm font-semibold">
-              {{ row.name?.charAt(0) }}
+            <img
+              v-if="row.picture"
+              :src="row.picture"
+              :alt="row.name"
+              class="w-10 h-10 rounded-full object-cover shrink-0"
+            />
+            <div
+              v-else
+              class="w-10 h-10 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center text-sm font-semibold shrink-0"
+            >
+              {{ row.name?.trim()?.charAt(0)?.toUpperCase() || "?" }}
             </div>
             <div>
               <p class="text-sm font-semibold text-gray-900">

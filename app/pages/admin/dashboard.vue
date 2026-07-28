@@ -6,11 +6,30 @@ definePageMeta({
   layout: "admin",
 });
 
+const RANGE_OPTIONS = [
+  { value: "today", label: "Today" },
+  { value: "week", label: "This Week" },
+  { value: "month", label: "This Month" },
+  { value: "last6months", label: "Last 6 Months" },
+  { value: "year", label: "This Year" },
+];
+
+const selectedRange = ref("last6months");
+
 const {
   data: summary,
   pending: loading,
   error,
-} = await useApiFetch("/api/dashboard/summary");
+} = await useApiFetch("/api/dashboard/summary", {
+  key: "admin-dashboard-summary",
+  query: computed(() => ({ range: selectedRange.value })),
+  watch: [selectedRange],
+});
+
+const revenueChartTitle = computed(() => {
+  const option = RANGE_OPTIONS.find((o) => o.value === selectedRange.value);
+  return `Revenue — ${option?.label || "Last 6 Months"}`;
+});
 
 function formatCurrency(value) {
   return `Rs ${Number(value || 0).toLocaleString("en-IN")}`;
@@ -18,10 +37,6 @@ function formatCurrency(value) {
 
 function formatDate(value) {
   return new Date(value).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
-}
-
-function formatMonth(value) {
-  return new Date(`${value}-01`).toLocaleDateString("en-US", { month: "short", year: "numeric" });
 }
 
 const stats = computed(() => {
@@ -35,9 +50,13 @@ const stats = computed(() => {
 });
 
 const maxRevenue = computed(() => {
-  if (!summary.value?.revenueByMonth?.length) return 0;
-  return Math.max(...summary.value.revenueByMonth.map((m) => m.revenue), 1);
+  if (!summary.value?.revenueByPeriod?.length) return 0;
+  return Math.max(...summary.value.revenueByPeriod.map((p) => p.revenue), 1);
 });
+
+// Hourly/daily ranges pack many more bars in, so labels are dropped in favor
+// of the hover tooltip to avoid the x-axis turning into unreadable clutter.
+const showBarLabels = computed(() => (summary.value?.revenueByPeriod?.length || 0) <= 12);
 
 function paymentBadgeClass(status) {
   return status === "Paid" ? "bg-green-50 text-green-700" : "bg-orange-50 text-orange-700";
@@ -95,30 +114,49 @@ function fulfillmentBadgeClass(status) {
         <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
           <!-- Revenue chart -->
           <div class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm md:col-span-2">
-            <h3 class="text-sm font-semibold text-gray-700">Revenue — Last 6 Months</h3>
+            <div class="flex flex-wrap items-center justify-between gap-3">
+              <h3 class="text-sm font-semibold text-gray-700">{{ revenueChartTitle }}</h3>
 
-            <div v-if="summary.revenueByMonth.length === 0" class="mt-8 py-10 text-center text-sm text-gray-400">
+              <div class="flex flex-wrap gap-1 rounded-lg bg-gray-100 p-1">
+                <button
+                  v-for="option in RANGE_OPTIONS"
+                  :key="option.value"
+                  type="button"
+                  class="rounded-md px-2.5 py-1 text-xs font-medium transition-colors"
+                  :class="
+                    selectedRange === option.value
+                      ? 'bg-white text-[var(--theme-color)] shadow-sm'
+                      : 'text-gray-500 hover:text-gray-700'
+                  "
+                  @click="selectedRange = option.value"
+                >
+                  {{ option.label }}
+                </button>
+              </div>
+            </div>
+
+            <div v-if="summary.revenueByPeriod.length === 0" class="mt-8 py-10 text-center text-sm text-gray-400">
               No revenue data yet.
             </div>
 
-            <div v-else class="mt-6 flex h-48 items-end gap-4">
+            <div v-else class="mt-6 flex h-48 items-end gap-1 sm:gap-2">
               <div
-                v-for="month in summary.revenueByMonth"
-                :key="month.month"
+                v-for="period in summary.revenueByPeriod"
+                :key="period.key"
                 class="group relative flex flex-1 flex-col items-center gap-2"
               >
                 <div
-                  class="absolute -top-9 hidden rounded-md bg-gray-900 px-2.5 py-1.5 text-xs font-medium text-white group-hover:block whitespace-nowrap z-10"
+                  class="absolute -top-9 hidden rounded-md bg-gray-900 px-2.5 py-1.5 text-xs font-medium text-white group-hover:block whitespace-nowrap z-50"
                 >
-                  {{ formatCurrency(month.revenue) }} &middot; {{ month.orders }} order{{ month.orders === 1 ? "" : "s" }}
+                  {{ period.label }} &middot; {{ formatCurrency(period.revenue) }} &middot; {{ period.orders }} order{{ period.orders === 1 ? "" : "s" }}
                 </div>
                 <div class="flex h-40 w-full items-end">
                   <div
                     class="w-full rounded-t-md bg-[var(--theme-color)] opacity-80 transition-opacity group-hover:opacity-100"
-                    :style="`height: ${Math.max(4, (month.revenue / maxRevenue) * 100)}%`"
+                    :style="`height: ${Math.max(4, (period.revenue / maxRevenue) * 100)}%`"
                   />
                 </div>
-                <span class="text-xs font-medium text-gray-500">{{ formatMonth(month.month) }}</span>
+                <span v-if="showBarLabels" class="text-xs font-medium text-gray-500">{{ period.label }}</span>
               </div>
             </div>
           </div>
@@ -185,7 +223,10 @@ function fulfillmentBadgeClass(status) {
                 @click="navigateTo(`/admin/order/${order.id}`)"
               >
                 <td class="py-3 text-sm font-medium text-purple-700">#BS-{{ order.id }}</td>
-                <td class="py-3 text-sm text-gray-800">{{ order.customerName }}</td>
+                <td class="py-3 text-sm">
+                  <p class="text-gray-800">{{ order.customerName }}</p>
+                  <p v-if="order.customerEmail" class="text-xs text-gray-400">{{ order.customerEmail }}</p>
+                </td>
                 <td class="py-3 text-sm text-gray-500">{{ order.itemCount }} item(s)</td>
                 <td class="py-3 text-sm font-semibold text-gray-800">{{ formatCurrency(order.total) }}</td>
                 <td class="py-3">

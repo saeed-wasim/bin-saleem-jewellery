@@ -9,6 +9,7 @@ import CustomersIcon from "~/assets/icons/customers.vue";
 import InventoryIcon from "~/assets/icons/inventory.vue";
 import ReviewsIcon from "~/assets/icons/reviews.vue";
 import PaymentsIcon from "~/assets/icons/payments.vue";
+import ProfileIcon from "~/assets/icons/profile.vue";
 import LogoutIcon from "~/assets/icons/logout.vue";
 
 const route = useRoute();
@@ -17,6 +18,8 @@ const { logout } = useAuth();
 
 const isOpen = ref(false);
 const showLogoutConfirm = ref(false);
+
+const { count: newOrdersCount } = useNewOrdersCount();
 
 function handleLogout() {
   logout();
@@ -33,6 +36,7 @@ const navItems = [
   { name: "Inventory", path: "/admin/inventory", icon: InventoryIcon },
   { name: "Reviews", path: "/admin/reviews", icon: ReviewsIcon },
   { name: "Payments", path: "/admin/payments", icon: PaymentsIcon },
+  { name: "Profile", path: "/admin/profile", icon: ProfileIcon },
 ];
 
 const isActive = (path) => {
@@ -111,19 +115,28 @@ const closeSidebar = () => {
           <NuxtLink
             :to="item.path"
             @click="closeSidebar"
-            class="flex items-center px-6 py-3 transition"
+            class="flex items-center justify-between px-6 py-3 transition"
             :class="
               isActive(item.path)
                 ? 'bg-themeSoft text-theme border-r-4 border-theme'
                 : 'hover:bg-themeSoft text-gray-600 hover:text-theme'
             "
           >
-            <component
-              :is="item.icon"
-              class="mr-3 h-5 w-5"
-            />
+            <span class="flex items-center">
+              <component
+                :is="item.icon"
+                class="mr-3 h-5 w-5"
+              />
 
-            {{ item.name }}
+              {{ item.name }}
+            </span>
+
+            <span
+              v-if="item.path === '/admin/orders' && newOrdersCount > 0"
+              class="ml-2 inline-flex items-center justify-center rounded-full bg-theme text-white text-xs font-semibold px-2 py-0.5"
+            >
+              {{ newOrdersCount }}
+            </span>
           </NuxtLink>
         </li>
       </ul>
