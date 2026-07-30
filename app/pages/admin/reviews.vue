@@ -6,11 +6,20 @@ definePageMeta({
 });
 
 const page = ref(1);
+const search = ref("");
+
+watch(search, () => {
+  page.value = 1;
+});
 
 const { data: reviewsPage, pending: loading, error: reviewsError } = await useApiFetch("/api/reviews", {
   key: "admin-reviews-list",
-  query: computed(() => ({ page: page.value, limit: 10 })),
-  watch: [page],
+  query: computed(() => ({
+    page: page.value,
+    limit: 10,
+    ...(search.value.trim() ? { search: search.value.trim() } : {}),
+  })),
+  watch: [page, search],
   default: () => ({ data: [], pagination: { page: 1, limit: 10, total: 0, totalPages: 1 } }),
   // Revisiting this page via client-side nav must always show newly submitted
   // reviews, not Nuxt's cached snapshot from the first visit.
@@ -101,6 +110,15 @@ const rows = computed(() =>
       </div>
 
       <div class="bg-white rounded-xl border border-gray-200 p-5 custom-scrollbar overflow-x-auto">
+        <div class="mb-5 flex justify-end">
+          <input
+            v-model="search"
+            type="text"
+            placeholder="Search by customer, product, or comment..."
+            class="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-[var(--theme-color)]"
+          />
+        </div>
+
         <div v-if="loading" class="text-gray-500 py-8 text-center">Loading reviews...</div>
         <CommonTable
           v-else

@@ -55,6 +55,13 @@ const isActive = (path) => {
       route.path.startsWith("/admin/customer/")
     );
   }
+  if (path === "/admin/inventory") {
+    return (
+      route.path === "/admin/inventory" ||
+      route.path.startsWith("/admin/inventory/") ||
+      route.path.startsWith("/admin/inventory-")
+    );
+  }
   return route.path === path;
 };
 

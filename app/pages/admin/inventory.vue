@@ -137,7 +137,16 @@ const tableColumns = [
 <template>
   <NuxtLayout name="admin">
     <div class="tw-px-5">
-      <PageHeading heading="Inventory" description="Track stock levels and keep your collection replenished." />
+      <PageHeading heading="Inventory" description="Track stock levels and keep your collection replenished.">
+        <template #actions>
+          <NuxtLink
+            to="/admin/inventory-todays-arrivals"
+            class="px-5 py-2.5 rounded-md uppercase text-xs font-semibold tracking-wider transition bg-[var(--theme-color)] text-white hover:opacity-90"
+          >
+            Recently Added
+          </NuxtLink>
+        </template>
+      </PageHeading>
 
       <Cards :stats="stats" />
 

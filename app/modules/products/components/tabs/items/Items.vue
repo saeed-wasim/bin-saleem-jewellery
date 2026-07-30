@@ -30,11 +30,15 @@ const showDeleteConfirm = ref(false);
 const itemToDelete = ref(null);
 const activeCategoryTab = ref("all");
 const categoriesRefreshTrigger = ref(0);
+const search = ref("");
 
 watch(refreshTrigger, () => {
   page.value = 1;
 });
 watch(activeCategoryTab, () => {
+  page.value = 1;
+});
+watch(search, () => {
   page.value = 1;
 });
 
@@ -48,9 +52,10 @@ const {
     page: page.value,
     limit: 10,
     ...(activeCategoryTab.value !== "all" ? { categoryId: activeCategoryTab.value } : {}),
+    ...(search.value.trim() ? { search: search.value.trim() } : {}),
   })),
   default: () => ({ data: [], pagination: { page: 1, limit: 10, total: 0, totalPages: 1 } }),
-  watch: [refreshTrigger, page, activeCategoryTab],
+  watch: [refreshTrigger, page, activeCategoryTab, search],
 });
 
 const items = computed(() => itemsPage.value?.data || []);
@@ -216,6 +221,15 @@ defineExpose({
       </div>
 
     <div class="bg-white rounded-lg shadow p-6">
+      <div class="mb-5 flex justify-end">
+        <input
+          v-model="search"
+          type="text"
+          placeholder="Search items by name..."
+          class="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-[var(--theme-color)]"
+        />
+      </div>
+
       <!-- Category Subtabs -->
       <div v-if="loading" class="text-gray-500">Loading items...</div>
       <div v-else-if="error" class="text-red-600">{{ error }}</div>

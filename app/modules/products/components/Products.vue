@@ -39,11 +39,8 @@ const { data: categoriesList, error: categoriesError, refresh: refreshCategories
   watch: [categoriesRefreshTrigger],
 });
 
-// Log for debugging
-if (categoriesError) {
-  console.error('Error fetching categories:', categoriesError);
-} else {
-  console.log('Categories loaded:', categoriesList.value);
+if (categoriesError.value) {
+  console.error('Error fetching categories:', categoriesError.value);
 }
 
 const tabs = [

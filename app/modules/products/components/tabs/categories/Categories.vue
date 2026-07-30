@@ -21,6 +21,7 @@ const addToast = (message, type = 'success', duration = 3000) => {
 }
 const refreshTrigger = ref(0);
 const page = ref(1);
+const search = ref("");
 const editingCategory = ref(null);
 const editForm = ref({ name: "", description: "", image: null });
 const editImagePreview = ref(null);
@@ -30,6 +31,9 @@ const editCategoryImageInput = ref(null);
 watch(refreshTrigger, () => {
   page.value = 1;
 });
+watch(search, () => {
+  page.value = 1;
+});
 
 const {
   data: categoriesPage,
@@ -37,9 +41,13 @@ const {
   error,
   refresh,
 } = await useApiFetch("/api/categories", {
-  query: computed(() => ({ page: page.value, limit: 10 })),
+  query: computed(() => ({
+    page: page.value,
+    limit: 10,
+    ...(search.value.trim() ? { search: search.value.trim() } : {}),
+  })),
   default: () => ({ data: [], pagination: { page: 1, limit: 10, total: 0, totalPages: 1 } }),
-  watch: [refreshTrigger, page],
+  watch: [refreshTrigger, page, search],
 });
 
 const categories = computed(() => categoriesPage.value?.data || []);
@@ -159,6 +167,15 @@ defineExpose({
   <div>
 
     <div class="bg-white rounded-lg shadow p-6">
+      <div class="mb-5 flex justify-end">
+        <input
+          v-model="search"
+          type="text"
+          placeholder="Search categories by name or description..."
+          class="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-[var(--theme-color)]"
+        />
+      </div>
+
       <div v-if="loading" class="text-gray-500">Loading categories...</div>
       <div v-else-if="error" class="text-red-600">{{ error }}</div>
       <CommonTable

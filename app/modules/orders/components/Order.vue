@@ -7,11 +7,20 @@ function openOrder(row) {
 }
 
 const page = ref(1);
+const search = ref("");
+
+watch(search, () => {
+  page.value = 1;
+});
 
 const { data: ordersPage, pending: loading, error: ordersError } = await useApiFetch("/api/orders", {
   key: "admin-orders-list",
-  query: computed(() => ({ page: page.value, limit: 10 })),
-  watch: [page],
+  query: computed(() => ({
+    page: page.value,
+    limit: 10,
+    ...(search.value.trim() ? { search: search.value.trim() } : {}),
+  })),
+  watch: [page, search],
   default: () => ({ data: [], pagination: { page: 1, limit: 10, total: 0, totalPages: 1 } }),
 });
 
@@ -97,7 +106,15 @@ function avatarColor(initials) {
 
     <!-- Active Transactions -->
     <div class="bg-white rounded-xl border border-gray-200 p-5 custom-scrollbar  overflow-x-auto">
-      
+      <div class="mb-5 flex justify-end">
+        <input
+          v-model="search"
+          type="text"
+          placeholder="Search by order ID, customer name, or email..."
+          class="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-[var(--theme-color)]"
+        />
+      </div>
+
       <div v-if="loading" class="text-gray-500 py-8 text-center">Loading orders...</div>
       <CommonTable
         v-else
@@ -112,7 +129,7 @@ function avatarColor(initials) {
         @page-change="page = $event"
       >
         <template #cell-orderId="{ row }">
-          <span class="text-purple-700 font-medium">{{ row.orderId }}</span>
+          <span class="text-theme font-medium">{{ row.orderId }}</span>
         </template>
 
         <template #cell-customer="{ row }">
@@ -138,7 +155,7 @@ function avatarColor(initials) {
         </template>
 
         <template #cell-total="{ row }">
-          <span class="text-purple-700 font-semibold">{{ row.total }}</span>
+          <span class="text-theme font-semibold">{{ row.total }}</span>
         </template>
 
         <template #cell-payment="{ row }">
