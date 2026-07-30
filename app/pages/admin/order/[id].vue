@@ -27,6 +27,13 @@ function handleStatusUpdated(updated) {
 <template>
   <NuxtLayout name="admin">
     <div class="tw-px-5">
+      <CommonBreadcrumbs
+        :items="[
+          { label: 'Orders', to: '/admin/orders' },
+          { label: `Order #BS-${orderId}` },
+        ]"
+      />
+
       <PageHeading :heading="`Order #BS-${orderId}`" description="Order details" />
 
       <div v-if="error" class="text-red-600">Unable to load this order.</div>
@@ -65,6 +72,7 @@ function handleStatusUpdated(updated) {
           <OrderStatusCard
             :order-id="order.id"
             :fulfillment-status="order.fulfillmentStatus"
+            :payment-status="order.paymentStatus"
             @updated="handleStatusUpdated"
           />
 

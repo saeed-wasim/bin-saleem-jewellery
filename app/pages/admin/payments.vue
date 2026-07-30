@@ -113,7 +113,7 @@ const rows = computed(() =>
           @page-change="page = $event"
         >
           <template #cell-orderId="{ row }">
-            <span class="text-purple-700 font-medium">{{ row.orderId }}</span>
+            <span class="text-theme font-medium">{{ row.orderId }}</span>
           </template>
 
           <template #cell-customer="{ row }">
@@ -139,7 +139,7 @@ const rows = computed(() =>
           </template>
 
           <template #cell-amount="{ row }">
-            <span class="text-purple-700 font-semibold">{{ row.amount }}</span>
+            <span class="text-theme font-semibold">{{ row.amount }}</span>
           </template>
 
           <template #cell-status="{ row }">

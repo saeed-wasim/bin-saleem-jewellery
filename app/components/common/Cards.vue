@@ -14,7 +14,7 @@ defineProps({
       :key="stat.label"
       class="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm"
     >
-      <div class="flex items-start justify-between">
+      <div class="flex items-center justify-between">
         <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">
           {{ stat.label }}
         </p>

@@ -61,6 +61,14 @@ function fulfillmentBadgeClass(status) {
 
 <template>
   <NuxtLayout name="admin">
+    <CommonBreadcrumbs
+      class="px-4 pt-4"
+      :items="[
+        { label: 'Customers', to: '/admin/customers' },
+        { label: customer?.name || `Customer #${route.params.id}` },
+      ]"
+    />
+
     <div v-if="loading" class="p-4 text-gray-500">Loading customer...</div>
     <div v-else-if="error" class="p-4 text-red-600">{{ error }}</div>
 
@@ -193,7 +201,7 @@ function fulfillmentBadgeClass(status) {
           >
             <div class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 bg-gray-50 px-5 py-3">
               <div class="flex items-center gap-3">
-                <NuxtLink :to="`/admin/order/${order.id}`" class="font-semibold text-purple-700">
+                <NuxtLink :to="`/admin/order/${order.id}`" class="font-semibold text-theme hover:underline">
                   #BS-{{ order.id }}
                 </NuxtLink>
                 <span class="text-sm text-gray-500">{{ formatDate(order.createdAt) }}</span>

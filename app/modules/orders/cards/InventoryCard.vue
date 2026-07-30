@@ -84,7 +84,7 @@ function formatPrice(value) {
 
       <hr>
 
-      <div class="flex justify-between text-xl font-bold text-purple-700">
+      <div class="flex justify-between text-xl font-bold text-theme">
         <span>Total</span>
         <span>{{ formatPrice(total) }}</span>
       </div>

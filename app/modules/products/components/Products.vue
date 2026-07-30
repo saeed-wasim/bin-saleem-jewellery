@@ -25,7 +25,7 @@ const addToast = (message, type = 'success', duration = 3000) => {
 const activeTab = ref("categories");
 const showCategoryModal = ref(false);
 const showItemModal = ref(false);
-const itemForm = ref({ name: "", description: "", price: "", categoryId: "", image: null, color: "", variantGroupId: "", length: "", width: "", stock: "" });
+const itemForm = ref({ name: "", description: "", price: "", categoryId: "", image: null, color: "", variantGroupId: "", length: "", width: "", stock: "", isGiftGuide: false });
 const categoryForm = ref({ name: "", description: "", image: null });
 const categoryImagePreview = ref(null);
 const itemImagePreview = ref(null);
@@ -78,7 +78,7 @@ async function handleCategoryImageChange(event) {
 }
 
 async function openCreateItemModal() {
-  itemForm.value = { name: "", description: "", price: "", categoryId: "", image: null, color: "", variantGroupId: "", length: "", width: "", stock: "" };
+  itemForm.value = { name: "", description: "", price: "", categoryId: "", image: null, color: "", variantGroupId: "", length: "", width: "", stock: "", isGiftGuide: false };
   itemImagePreview.value = null;
   refreshCategories();
   showItemModal.value = true;
@@ -168,10 +168,11 @@ async function handleCreateItem() {
         length: itemForm.value.length,
         width: itemForm.value.width,
         stock: itemForm.value.stock,
+        isGiftGuide: itemForm.value.isGiftGuide,
       },
     });
     showItemModal.value = false;
-    itemForm.value = { name: "", description: "", price: "", categoryId: "", image: null, color: "", variantGroupId: "", length: "", width: "", stock: "" };
+    itemForm.value = { name: "", description: "", price: "", categoryId: "", image: null, color: "", variantGroupId: "", length: "", width: "", stock: "", isGiftGuide: false };
     itemImagePreview.value = null;
     addToast("Item created successfully", "success");
     
@@ -452,6 +453,16 @@ async function handleCreateItem() {
               class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-[var(--theme-color)]"
             />
           </div>
+        </div>
+        <div>
+          <label class="flex items-center gap-2 text-sm font-medium text-gray-700">
+            <input
+              v-model="itemForm.isGiftGuide"
+              type="checkbox"
+              class="w-4 h-4 rounded border-gray-300 text-[var(--theme-color)] focus:ring-[var(--theme-color)]"
+            />
+            Show in Gift Guide
+          </label>
         </div>
         <div>
           <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">

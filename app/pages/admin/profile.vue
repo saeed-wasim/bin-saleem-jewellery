@@ -74,7 +74,7 @@ async function handleSubmit() {
     <div class="tw-px-5">
       <PageHeading heading="My Profile" description="Manage your admin account security" />
 
-      <div class="max-w-xl">
+      <div class="w-full">
         <div class="rounded-2xl bg-gradient-to-r from-theme to-purple-700 px-8 py-8 text-white shadow-lg flex items-center gap-5">
           <div class="w-16 h-16 shrink-0 rounded-full bg-white/15 border-2 border-white/40 flex items-center justify-center text-2xl font-bold tracking-wide">
             {{ initials }}

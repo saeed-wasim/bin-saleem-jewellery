@@ -36,15 +36,27 @@ function formatCurrency(value) {
 }
 
 function formatDate(value) {
-  return new Date(value).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  return new Date(value).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
 }
 
 const stats = computed(() => {
   if (!summary.value) return [];
   return [
     { label: "Total Orders", value: summary.value.totalOrders, icon: "cart" },
-    { label: "Total Revenue", value: formatCurrency(summary.value.totalRevenue), icon: "wallet" },
-    { label: "Total Customers", value: summary.value.totalCustomers, icon: "users" },
+    {
+      label: "Total Revenue",
+      value: formatCurrency(summary.value.totalRevenue),
+      icon: "wallet",
+    },
+    {
+      label: "Total Customers",
+      value: summary.value.totalCustomers,
+      icon: "users",
+    },
     { label: "Products", value: summary.value.totalProducts, icon: "box" },
   ];
 });
@@ -56,10 +68,14 @@ const maxRevenue = computed(() => {
 
 // Hourly/daily ranges pack many more bars in, so labels are dropped in favor
 // of the hover tooltip to avoid the x-axis turning into unreadable clutter.
-const showBarLabels = computed(() => (summary.value?.revenueByPeriod?.length || 0) <= 12);
+const showBarLabels = computed(
+  () => (summary.value?.revenueByPeriod?.length || 0) <= 12,
+);
 
 function paymentBadgeClass(status) {
-  return status === "Paid" ? "bg-green-50 text-green-700" : "bg-orange-50 text-orange-700";
+  return status === "Paid"
+    ? "bg-green-50 text-green-700"
+    : "bg-orange-50 text-orange-700";
 }
 
 function fulfillmentBadgeClass(status) {
@@ -77,7 +93,10 @@ function fulfillmentBadgeClass(status) {
 <template>
   <NuxtLayout name="admin">
     <div>
-      <PageHeading heading="Dashboard" description="A snapshot of orders, revenue, and stock health." />
+      <PageHeading
+        heading="Dashboard"
+        description="A snapshot of orders, revenue, and stock health."
+      />
 
       <div v-if="loading" class="text-gray-500 px-4">Loading dashboard...</div>
       <div v-else-if="error" class="text-red-600 px-4">{{ error }}</div>
@@ -91,7 +110,13 @@ function fulfillmentBadgeClass(status) {
           class="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-200 bg-amber-50 px-5 py-4"
         >
           <div class="flex items-center gap-3">
-            <svg class="h-5 w-5 flex-shrink-0 text-amber-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg
+              class="h-5 w-5 flex-shrink-0 text-amber-600"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
               <path
                 d="M12 9v4m0 4h.01M10.29 3.86l-8.18 14.18A1 1 0 003 19.5h18a1 1 0 00.89-1.46L13.71 3.86a1 1 0 00-1.72 0z"
                 stroke-linecap="round"
@@ -99,8 +124,12 @@ function fulfillmentBadgeClass(status) {
               />
             </svg>
             <p class="text-sm font-medium text-amber-800">
-              <span v-if="summary.outOfStockCount > 0">{{ summary.outOfStockCount }} product(s) out of stock. </span>
-              <span v-if="summary.lowStockCount > 0">{{ summary.lowStockCount }} product(s) running low.</span>
+              <span v-if="summary.outOfStockCount > 0"
+                >{{ summary.outOfStockCount }} product(s) out of stock.
+              </span>
+              <span v-if="summary.lowStockCount > 0"
+                >{{ summary.lowStockCount }} product(s) running low.</span
+              >
             </p>
           </div>
           <NuxtLink
@@ -113,9 +142,13 @@ function fulfillmentBadgeClass(status) {
 
         <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
           <!-- Revenue chart -->
-          <div class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm md:col-span-2">
+          <div
+            class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm md:col-span-2"
+          >
             <div class="flex flex-wrap items-center justify-between gap-3">
-              <h3 class="text-sm font-semibold text-gray-700">{{ revenueChartTitle }}</h3>
+              <h3 class="text-sm font-semibold text-gray-700">
+                {{ revenueChartTitle }}
+              </h3>
 
               <div class="flex flex-wrap gap-1 rounded-lg bg-gray-100 p-1">
                 <button
@@ -135,7 +168,10 @@ function fulfillmentBadgeClass(status) {
               </div>
             </div>
 
-            <div v-if="summary.revenueByPeriod.length === 0" class="mt-8 py-10 text-center text-sm text-gray-400">
+            <div
+              v-if="summary.revenueByPeriod.length === 0"
+              class="mt-8 py-10 text-center text-sm text-gray-400"
+            >
               No revenue data yet.
             </div>
 
@@ -148,7 +184,9 @@ function fulfillmentBadgeClass(status) {
                 <div
                   class="absolute -top-9 hidden rounded-md bg-gray-900 px-2.5 py-1.5 text-xs font-medium text-white group-hover:block whitespace-nowrap z-50"
                 >
-                  {{ period.label }} &middot; {{ formatCurrency(period.revenue) }} &middot; {{ period.orders }} order{{ period.orders === 1 ? "" : "s" }}
+                  {{ period.label }} &middot;
+                  {{ formatCurrency(period.revenue) }} &middot;
+                  {{ period.orders }} order{{ period.orders === 1 ? "" : "s" }}
                 </div>
                 <div class="flex h-40 w-full items-end">
                   <div
@@ -156,35 +194,53 @@ function fulfillmentBadgeClass(status) {
                     :style="`height: ${Math.max(4, (period.revenue / maxRevenue) * 100)}%`"
                   />
                 </div>
-                <span v-if="showBarLabels" class="text-xs font-medium text-gray-500">{{ period.label }}</span>
+                <span
+                  v-if="showBarLabels"
+                  class="text-xs font-medium text-gray-500"
+                  >{{ period.label }}</span
+                >
               </div>
             </div>
           </div>
 
           <!-- Inventory snapshot -->
-          <div class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
-            <h3 class="text-sm font-semibold text-gray-700">Inventory Snapshot</h3>
+          <div
+            class="flex h-full flex-col rounded-2xl border border-gray-200 bg-white p-5 shadow-sm"
+          >
+            <h3 class="text-sm font-semibold text-gray-700">
+              Inventory Snapshot
+            </h3>
 
             <div class="mt-5 space-y-4">
               <div class="flex items-center justify-between">
                 <span class="text-sm text-gray-500">In Stock</span>
                 <span class="text-sm font-semibold text-emerald-600">
-                  {{ summary.totalProducts - summary.lowStockCount - summary.outOfStockCount }}
+                  {{
+                    summary.totalProducts -
+                    summary.lowStockCount -
+                    summary.outOfStockCount
+                  }}
                 </span>
               </div>
+
               <div class="flex items-center justify-between">
                 <span class="text-sm text-gray-500">Low Stock</span>
-                <span class="text-sm font-semibold text-amber-600">{{ summary.lowStockCount }}</span>
+                <span class="text-sm font-semibold text-amber-600">
+                  {{ summary.lowStockCount }}
+                </span>
               </div>
+
               <div class="flex items-center justify-between">
                 <span class="text-sm text-gray-500">Out of Stock</span>
-                <span class="text-sm font-semibold text-red-600">{{ summary.outOfStockCount }}</span>
+                <span class="text-sm font-semibold text-red-600">
+                  {{ summary.outOfStockCount }}
+                </span>
               </div>
             </div>
 
             <NuxtLink
               to="/admin/inventory"
-              class="mt-6 block w-full rounded-md border border-[var(--theme-color)] py-2.5 text-center text-xs font-semibold uppercase tracking-wider text-[var(--theme-color)] hover:bg-themeSoft"
+              class="mt-auto block w-full rounded-md border border-[var(--theme-color)] py-2.5 text-center text-xs font-semibold uppercase tracking-wider text-[var(--theme-color)] hover:bg-themeSoft"
             >
               Manage Inventory
             </NuxtLink>
@@ -195,18 +251,26 @@ function fulfillmentBadgeClass(status) {
         <div class="mt-6 rounded-xl border border-gray-200 bg-white p-5">
           <div class="mb-4 flex items-center justify-between">
             <h3 class="text-sm font-semibold text-gray-700">Recent Orders</h3>
-            <NuxtLink to="/admin/orders" class="text-xs font-semibold uppercase tracking-wider text-[var(--theme-color)]">
+            <NuxtLink
+              to="/admin/orders"
+              class="text-xs font-semibold uppercase tracking-wider text-[var(--theme-color)] hover:underline"
+            >
               View All
             </NuxtLink>
           </div>
 
-          <div v-if="summary.recentOrders.length === 0" class="py-8 text-center text-sm text-gray-400">
+          <div
+            v-if="summary.recentOrders.length === 0"
+            class="py-8 text-center text-sm text-gray-400"
+          >
             No orders yet.
           </div>
 
           <table v-else class="w-full">
             <thead>
-              <tr class="border-b border-gray-100 text-left text-xs uppercase tracking-wider text-gray-400">
+              <tr
+                class="border-b border-gray-100 text-left text-xs uppercase tracking-wider text-gray-400"
+              >
                 <th class="pb-3">Order</th>
                 <th class="pb-3">Customer</th>
                 <th class="pb-3">Items</th>
@@ -222,20 +286,34 @@ function fulfillmentBadgeClass(status) {
                 class="cursor-pointer border-b border-gray-50 last:border-0 hover:bg-gray-50"
                 @click="navigateTo(`/admin/order/${order.id}`)"
               >
-                <td class="py-3 text-sm font-medium text-purple-700">#BS-{{ order.id }}</td>
+                <td class="py-3 text-sm font-medium text-theme">
+                  #BS-{{ order.id }}
+                </td>
                 <td class="py-3 text-sm">
                   <p class="text-gray-800">{{ order.customerName }}</p>
-                  <p v-if="order.customerEmail" class="text-xs text-gray-400">{{ order.customerEmail }}</p>
+                  <p v-if="order.customerEmail" class="text-xs text-gray-400">
+                    {{ order.customerEmail }}
+                  </p>
                 </td>
-                <td class="py-3 text-sm text-gray-500">{{ order.itemCount }} item(s)</td>
-                <td class="py-3 text-sm font-semibold text-gray-800">{{ formatCurrency(order.total) }}</td>
+                <td class="py-3 text-sm text-gray-500">
+                  {{ order.itemCount }} item(s)
+                </td>
+                <td class="py-3 text-sm font-semibold text-gray-800">
+                  {{ formatCurrency(order.total) }}
+                </td>
                 <td class="py-3">
-                  <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium" :class="paymentBadgeClass(order.paymentStatus)">
+                  <span
+                    class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium"
+                    :class="paymentBadgeClass(order.paymentStatus)"
+                  >
                     {{ order.paymentStatus }}
                   </span>
                 </td>
                 <td class="py-3">
-                  <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium" :class="fulfillmentBadgeClass(order.fulfillmentStatus)">
+                  <span
+                    class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium"
+                    :class="fulfillmentBadgeClass(order.fulfillmentStatus)"
+                  >
                     {{ order.fulfillmentStatus }}
                   </span>
                 </td>

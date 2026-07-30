@@ -106,7 +106,7 @@ function goTo(page) {
             @click="goTo(p)"
             class="w-7 h-7 flex items-center justify-center rounded-md text-sm"
             :class="p === page
-              ? 'bg-purple-800 text-white'
+              ? 'bg-theme text-white'
               : 'border border-gray-200 text-gray-600 hover:bg-gray-50'"
           >
             {{ p }}

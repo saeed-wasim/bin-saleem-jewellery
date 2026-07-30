@@ -2,6 +2,7 @@
 const props = defineProps({
   orderId: { type: [Number, String], required: true },
   fulfillmentStatus: { type: String, default: "Processing" },
+  paymentStatus: { type: String, default: "Pending" },
 });
 
 const emit = defineEmits(["updated"]);
@@ -48,6 +49,10 @@ async function setStatus(status) {
 function statusIndex(status) {
   return statuses.findIndex((s) => s.value === status);
 }
+
+function isDisabled(status) {
+  return updating.value || (props.paymentStatus !== "Paid" && status !== "Processing");
+}
 </script>
 
 <template>
@@ -61,8 +66,8 @@ function statusIndex(status) {
         v-for="(status, index) in statuses"
         :key="status.value"
         type="button"
-        :disabled="updating"
-        class="flex-1 py-3 text-xs font-semibold uppercase tracking-wide transition-colors disabled:cursor-not-allowed"
+        :disabled="isDisabled(status.value)"
+        class="flex-1 py-3 text-xs font-semibold uppercase tracking-wide transition-colors disabled:cursor-not-allowed disabled:opacity-50"
         :class="[
           index < statuses.length - 1 ? 'border-r border-gray-200' : '',
           index <= statusIndex(fulfillmentStatus)
@@ -76,7 +81,12 @@ function statusIndex(status) {
     </div>
 
     <p class="mt-3 text-xs text-gray-400">
-      Click a stage to mark this order as {{ updating ? 'updating…' : 'reached that stage' }}.
+      <template v-if="paymentStatus !== 'Paid'">
+        Shipped and Delivered are locked until payment is confirmed.
+      </template>
+      <template v-else>
+        Click a stage to mark this order as {{ updating ? 'updating…' : 'reached that stage' }}.
+      </template>
     </p>
   </div>
 </template>

@@ -22,7 +22,7 @@ const addToast = (message, type = 'success', duration = 3000) => {
 const refreshTrigger = ref(0);
 const page = ref(1);
 const editingItem = ref(null);
-const editForm = ref({ name: "", description: "", price: "", categoryId: "", image: null, color: "", variantGroupId: "", length: "", width: "", stock: "" });
+const editForm = ref({ name: "", description: "", price: "", categoryId: "", image: null, color: "", variantGroupId: "", length: "", width: "", stock: "", isGiftGuide: false });
 const editImagePreview = ref(null);
 const editImageRemoved = ref(false);
 const editItemImageInput = ref(null);
@@ -119,6 +119,7 @@ async function handleEditItem(item) {
     length: fresh.length || "",
     width: fresh.width || "",
     stock: fresh.stock ?? "",
+    isGiftGuide: !!fresh.isGiftGuide,
   };
   editImagePreview.value = fresh.image || null;
   editImageRemoved.value = false;
@@ -159,6 +160,7 @@ async function handleUpdateItem() {
       length: editForm.value.length,
       width: editForm.value.width,
       stock: editForm.value.stock,
+      isGiftGuide: editForm.value.isGiftGuide,
     };
     if (editForm.value.image) {
       body.image = editImagePreview.value;
@@ -173,7 +175,7 @@ async function handleUpdateItem() {
 
     addToast("Item updated successfully", "success");
     editingItem.value = null;
-    editForm.value = { name: "", description: "", price: "", categoryId: "", image: null, color: "", variantGroupId: "", length: "", width: "", stock: "" };
+    editForm.value = { name: "", description: "", price: "", categoryId: "", image: null, color: "", variantGroupId: "", length: "", width: "", stock: "", isGiftGuide: false };
     editImagePreview.value = null;
     editImageRemoved.value = false;
     await refresh();
@@ -398,6 +400,16 @@ defineExpose({
               class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-[var(--theme-color)]"
             />
           </div>
+        </div>
+        <div>
+          <label class="flex items-center gap-2 text-sm font-medium text-gray-700">
+            <input
+              v-model="editForm.isGiftGuide"
+              type="checkbox"
+              class="w-4 h-4 rounded border-gray-300 text-[var(--theme-color)] focus:ring-[var(--theme-color)]"
+            />
+            Show in Gift Guide
+          </label>
         </div>
         <div>
           <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">
