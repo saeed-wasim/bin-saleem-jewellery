@@ -23,7 +23,7 @@ const refreshTrigger = ref(0);
 const page = ref(1);
 const search = ref("");
 const editingCategory = ref(null);
-const editForm = ref({ name: "", description: "", image: null });
+const editForm = ref({ name: "", description: "", subcategories: "", image: null });
 const editImagePreview = ref(null);
 const editImageRemoved = ref(false);
 const editCategoryImageInput = ref(null);
@@ -57,8 +57,30 @@ const tableColumns = [
   { key: "image", label: "Image", width: "100px" },
   { key: "name", label: "Title", width: "200px" },
   { key: "description", label: "Description", width: "auto" },
+  { key: "subcategories", label: "Subcategories", width: "250px" },
   { key: "actions", label: "Actions", width: "100px" },
 ];
+
+async function handleRowDrop({ fromIndex, toIndex }) {
+  if (fromIndex === toIndex || fromIndex < 0 || toIndex < 0) return;
+  const nextData = [...(categoriesPage.value?.data || [])];
+  const [moved] = nextData.splice(fromIndex, 1);
+  nextData.splice(toIndex, 0, moved);
+  if (categoriesPage.value) {
+    categoriesPage.value.data = nextData;
+  }
+
+  const nextOrder = nextData.map((row) => row.id);
+  try {
+    await apiFetch('/api/categories/reorder', {
+      method: 'PATCH',
+      body: { order: nextOrder },
+    });
+    await refresh();
+  } catch (error) {
+    addToast(error?.data?.error || 'Unable to save category order', 'error');
+  }
+}
 
 
 const showDeleteConfirm = ref(false);
@@ -96,6 +118,7 @@ async function handleEditCategory(category) {
   editForm.value = {
     name: fresh.name,
     description: fresh.description,
+    subcategories: Array.isArray(fresh.subcategories) ? fresh.subcategories.join(', ') : "",
     image: null
   };
   editImagePreview.value = fresh.image || null;
@@ -130,6 +153,7 @@ async function handleUpdateCategory() {
     const body = {
       name: editForm.value.name,
       description: editForm.value.description,
+      subcategories: editForm.value.subcategories,
     };
     if (editForm.value.image) {
       body.image = editImagePreview.value;
@@ -144,7 +168,7 @@ async function handleUpdateCategory() {
 
     addToast("Category updated successfully", "success");
     editingCategory.value = null;
-    editForm.value = { name: "", description: "", image: null };
+    editForm.value = { name: "", description: "", subcategories: "", image: null };
     editImagePreview.value = null;
     editImageRemoved.value = false;
     await refresh();
@@ -182,12 +206,14 @@ defineExpose({
         v-else
         :columns="tableColumns"
         :data="categories"
+        reorderable
         pagination
         :page="pageMeta.page"
         :total-pages="pageMeta.totalPages"
         :total="pageMeta.total"
         :limit="pageMeta.limit"
         @page-change="page = $event"
+        @row-drop="handleRowDrop"
       >
         <template #cell-image="{ row }">
           <img
@@ -196,6 +222,11 @@ defineExpose({
             class="w-12 h-12 rounded-lg object-cover"
             @error="(e) => e.target.src = NO_IMAGE_PLACEHOLDER"
           />
+        </template>
+        <template #cell-subcategories="{ row }">
+          <span class="text-sm text-gray-600">
+            {{ Array.isArray(row.subcategories) && row.subcategories.length ? row.subcategories.join(', ') : '—' }}
+          </span>
         </template>
         <template #cell-actions="{ row }">
           <div class="flex gap-2">
@@ -250,6 +281,18 @@ defineExpose({
             rows="4"
             required
           />
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">
+            Subcategories
+          </label>
+          <input
+            v-model="editForm.subcategories"
+            type="text"
+            placeholder="Rings, Bracelets, Necklaces"
+            class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-[var(--theme-color)]"
+          />
+          <p class="text-gray-500 text-xs mt-1">Optional. Use commas to add multiple subcategories.</p>
         </div>
         <div>
           <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">

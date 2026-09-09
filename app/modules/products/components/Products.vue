@@ -25,8 +25,9 @@ const addToast = (message, type = 'success', duration = 3000) => {
 const activeTab = ref("categories");
 const showCategoryModal = ref(false);
 const showItemModal = ref(false);
-const itemForm = ref({ name: "", description: "", price: "", categoryId: "", image: null, color: "", variantGroupId: "", length: "", width: "", stock: "", isGiftGuide: false });
-const categoryForm = ref({ name: "", description: "", image: null });
+const itemForm = ref({ name: "", description: "", price: "", categoryId: "", subcategories: [], image: null, color: "", variantGroupId: "", length: "", width: "", stock: "", isGiftGuide: false });
+const categoryForm = ref({ name: "", description: "", subcategories: [], image: null });
+const categorySubcategoryInput = ref("");
 const categoryImagePreview = ref(null);
 const itemImagePreview = ref(null);
 const isLoading = ref(false);
@@ -48,6 +49,15 @@ const tabs = [
   { id: "items", label: "Items", component: Items },
 ];
 
+const selectedCategoryForItem = computed(() => {
+  return categoriesList.value.find((category) => category.id === Number(itemForm.value.categoryId));
+});
+const availableItemSubcategories = computed(() => selectedCategoryForItem.value?.subcategories || []);
+
+watch(() => itemForm.value.categoryId, () => {
+  itemForm.value.subcategories = [];
+});
+
 function readFileAsDataUrl(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -58,7 +68,8 @@ function readFileAsDataUrl(file) {
 }
 
 function openCreateCategoryModal() {
-  categoryForm.value = { name: "", description: "", image: null };
+  categoryForm.value = { name: "", description: "", subcategories: [], image: null };
+  categorySubcategoryInput.value = "";
   categoryImagePreview.value = null;
   showCategoryModal.value = true;
 }
@@ -75,7 +86,7 @@ async function handleCategoryImageChange(event) {
 }
 
 async function openCreateItemModal() {
-  itemForm.value = { name: "", description: "", price: "", categoryId: "", image: null, color: "", variantGroupId: "", length: "", width: "", stock: "", isGiftGuide: false };
+  itemForm.value = { name: "", description: "", price: "", categoryId: "", subcategories: [], image: null, color: "", variantGroupId: "", length: "", width: "", stock: "", isGiftGuide: false };
   itemImagePreview.value = null;
   refreshCategories();
   showItemModal.value = true;
@@ -90,6 +101,19 @@ async function handleItemImageChange(event) {
   }
   itemImagePreview.value = await readFileAsDataUrl(file);
   itemForm.value.image = file;
+}
+
+function addCategorySubcategory() {
+  const value = categorySubcategoryInput.value.trim();
+  if (!value) return;
+  if (!categoryForm.value.subcategories.includes(value)) {
+    categoryForm.value.subcategories.push(value);
+  }
+  categorySubcategoryInput.value = "";
+}
+
+function removeCategorySubcategory(value) {
+  categoryForm.value.subcategories = categoryForm.value.subcategories.filter((item) => item !== value);
 }
 
 async function handleCreateCategory() {
@@ -111,11 +135,13 @@ async function handleCreateCategory() {
       body: {
         name: categoryForm.value.name,
         description: categoryForm.value.description,
+        subcategories: categoryForm.value.subcategories,
         image: categoryImagePreview.value,
       },
     });
     showCategoryModal.value = false;
-    categoryForm.value = { name: "", description: "", image: null };
+    categoryForm.value = { name: "", description: "", subcategories: [], image: null };
+    categorySubcategoryInput.value = "";
     categoryImagePreview.value = null;
     addToast("Category created successfully", "success");
     
@@ -159,6 +185,7 @@ async function handleCreateItem() {
         description: itemForm.value.description,
         price: itemForm.value.price,
         categoryId: itemForm.value.categoryId,
+        subcategories: itemForm.value.subcategories,
         image: itemImagePreview.value,
         color: itemForm.value.color,
         variantGroupId: itemForm.value.variantGroupId,
@@ -169,7 +196,7 @@ async function handleCreateItem() {
       },
     });
     showItemModal.value = false;
-    itemForm.value = { name: "", description: "", price: "", categoryId: "", image: null, color: "", variantGroupId: "", length: "", width: "", stock: "", isGiftGuide: false };
+    itemForm.value = { name: "", description: "", price: "", categoryId: "", subcategories: [], image: null, color: "", variantGroupId: "", length: "", width: "", stock: "", isGiftGuide: false };
     itemImagePreview.value = null;
     addToast("Item created successfully", "success");
     
@@ -280,6 +307,45 @@ async function handleCreateItem() {
             rows="4"
             required
           />
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">
+            Subcategories
+          </label>
+          <div class="flex gap-2">
+            <input
+              v-model="categorySubcategoryInput"
+              type="text"
+              placeholder="Enter subcategory"
+              class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-[var(--theme-color)]"
+              @keyup.enter.prevent="addCategorySubcategory"
+            />
+            <button
+              type="button"
+              @click="addCategorySubcategory"
+              class="px-3 py-2 rounded-lg bg-[var(--theme-color)] text-white text-sm font-semibold"
+            >
+              Add
+            </button>
+          </div>
+          <div v-if="categoryForm.subcategories.length" class="mt-3 flex flex-wrap gap-2">
+            <span
+              v-for="(subcategory, index) in categoryForm.subcategories"
+              :key="`${subcategory}-${index}`"
+              class="inline-flex items-center gap-2 rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-700"
+            >
+              {{ subcategory }}
+              <button
+                type="button"
+                @click="removeCategorySubcategory(subcategory)"
+                class="text-red-500 font-bold"
+                title="Remove subcategory"
+              >
+                ×
+              </button>
+            </span>
+          </div>
+          <p class="text-gray-500 text-xs mt-1">Add each subcategory one by one.</p>
         </div>
         <div>
           <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">
@@ -399,6 +465,27 @@ async function handleCreateItem() {
           <p v-if="categoriesList.length === 0" class="text-red-500 text-xs mt-1">
             No categories available. Please create a category first in the Categories tab.
           </p>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">
+            Subcategories
+          </label>
+          <div v-if="availableItemSubcategories.length" class="grid grid-cols-2 gap-2">
+            <label
+              v-for="subcategory in availableItemSubcategories"
+              :key="subcategory"
+              class="flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700"
+            >
+              <input
+                v-model="itemForm.subcategories"
+                :value="subcategory"
+                type="checkbox"
+                class="w-4 h-4 rounded border-gray-300 text-[var(--theme-color)] focus:ring-[var(--theme-color)]"
+              />
+              {{ subcategory }}
+            </label>
+          </div>
+          <p v-else class="text-gray-500 text-xs mt-1">No subcategories are available for the selected category.</p>
         </div>
         <div>
           <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">

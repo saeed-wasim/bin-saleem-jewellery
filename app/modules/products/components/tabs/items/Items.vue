@@ -22,7 +22,7 @@ const addToast = (message, type = 'success', duration = 3000) => {
 const refreshTrigger = ref(0);
 const page = ref(1);
 const editingItem = ref(null);
-const editForm = ref({ name: "", description: "", price: "", categoryId: "", image: null, color: "", variantGroupId: "", length: "", width: "", stock: "", isGiftGuide: false });
+const editForm = ref({ name: "", description: "", price: "", categoryId: "", subcategories: [], image: null, color: "", variantGroupId: "", length: "", width: "", stock: "", isGiftGuide: false });
 const editImagePreview = ref(null);
 const editImageRemoved = ref(false);
 const editItemImageInput = ref(null);
@@ -70,10 +70,32 @@ const tableColumns = [
   { key: "image", label: "Image", width: "100px" },
   { key: "name", label: "Item Name", width: "200px" },
   { key: "description", label: "Description", width: "auto" },
+  { key: "subcategories", label: "Subcategories", width: "200px" },
   { key: "price", label: "Price", width: "100px" },
   { key: "stock", label: "Stock", width: "100px" },
   { key: "actions", label: "Actions", width: "100px" },
 ];
+
+async function handleRowDrop({ fromIndex, toIndex }) {
+  if (fromIndex === toIndex || fromIndex < 0 || toIndex < 0) return;
+  const nextData = [...(itemsPage.value?.data || [])];
+  const [moved] = nextData.splice(fromIndex, 1);
+  nextData.splice(toIndex, 0, moved);
+  if (itemsPage.value) {
+    itemsPage.value.data = nextData;
+  }
+
+  const nextOrder = nextData.map((row) => row.id);
+  try {
+    await apiFetch('/api/products/reorder', {
+      method: 'PATCH',
+      body: { order: nextOrder },
+    });
+    await refresh();
+  } catch (error) {
+    addToast(error?.data?.error || 'Unable to save item order', 'error');
+  }
+}
 
 const categoryTabs = computed(() => {
   return [
@@ -82,6 +104,14 @@ const categoryTabs = computed(() => {
   ];
 });
 
+const selectedEditCategory = computed(() => {
+  return categories.value.find((category) => category.id === Number(editForm.value.categoryId));
+});
+const availableEditSubcategories = computed(() => selectedEditCategory.value?.subcategories || []);
+
+watch(() => editForm.value.categoryId, () => {
+  editForm.value.subcategories = [];
+});
 
 function handleDeleteItem(item) {
   itemToDelete.value = item;
@@ -118,6 +148,7 @@ async function handleEditItem(item) {
     description: fresh.description,
     price: fresh.price,
     categoryId: fresh.categoryId,
+    subcategories: Array.isArray(fresh.subcategories) ? [...fresh.subcategories] : [],
     image: null,
     color: fresh.color || "",
     variantGroupId: fresh.variantGroupId || "",
@@ -160,6 +191,7 @@ async function handleUpdateItem() {
       description: editForm.value.description,
       price: editForm.value.price,
       categoryId: editForm.value.categoryId,
+      subcategories: editForm.value.subcategories,
       color: editForm.value.color,
       variantGroupId: editForm.value.variantGroupId,
       length: editForm.value.length,
@@ -180,7 +212,7 @@ async function handleUpdateItem() {
 
     addToast("Item updated successfully", "success");
     editingItem.value = null;
-    editForm.value = { name: "", description: "", price: "", categoryId: "", image: null, color: "", variantGroupId: "", length: "", width: "", stock: "", isGiftGuide: false };
+    editForm.value = { name: "", description: "", price: "", categoryId: "", subcategories: [], image: null, color: "", variantGroupId: "", length: "", width: "", stock: "", isGiftGuide: false };
     editImagePreview.value = null;
     editImageRemoved.value = false;
     await refresh();
@@ -240,12 +272,14 @@ defineExpose({
         v-else
         :columns="tableColumns"
         :data="items"
+        reorderable
         pagination
         :page="pageMeta.page"
         :total-pages="pageMeta.totalPages"
         :total="pageMeta.total"
         :limit="pageMeta.limit"
         @page-change="page = $event"
+        @row-drop="handleRowDrop"
       >
         <template #cell-image="{ row }">
           <img
@@ -254,6 +288,11 @@ defineExpose({
             class="w-12 h-12 rounded-lg object-cover"
             @error="(e) => e.target.src = NO_IMAGE_PLACEHOLDER"
           />
+        </template>
+        <template #cell-subcategories="{ row }">
+          <span class="text-sm text-gray-600">
+            {{ Array.isArray(row.subcategories) && row.subcategories.length ? row.subcategories.join(', ') : '—' }}
+          </span>
         </template>
         <template #cell-price="{ row }">
           {{ row.price ? `$${parseFloat(row.price).toFixed(2)}` : '-' }}
@@ -363,6 +402,27 @@ defineExpose({
               {{ category.name }}
             </option>
           </select>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">
+            Subcategories
+          </label>
+          <div v-if="availableEditSubcategories.length" class="grid grid-cols-2 gap-2">
+            <label
+              v-for="subcategory in availableEditSubcategories"
+              :key="subcategory"
+              class="flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700"
+            >
+              <input
+                v-model="editForm.subcategories"
+                :value="subcategory"
+                type="checkbox"
+                class="w-4 h-4 rounded border-gray-300 text-[var(--theme-color)] focus:ring-[var(--theme-color)]"
+              />
+              {{ subcategory }}
+            </label>
+          </div>
+          <p v-else class="text-gray-500 text-xs mt-1">No subcategories are available for the selected category.</p>
         </div>
         <div>
           <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">

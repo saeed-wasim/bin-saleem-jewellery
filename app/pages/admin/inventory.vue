@@ -127,6 +127,7 @@ async function handleSaveEdit() {
 const tableColumns = [
   { key: "product", label: "Product" },
   { key: "category", label: "Category" },
+  { key: "subcategories", label: "Subcategories" },
   { key: "price", label: "Price" },
   { key: "stock", label: "Stock" },
   { key: "status", label: "Status" },
@@ -206,6 +207,12 @@ const tableColumns = [
 
           <template #cell-category="{ row }">
             {{ row.category?.name || "—" }}
+          </template>
+
+          <template #cell-subcategories="{ row }">
+            <span class="text-sm text-gray-600">
+              {{ Array.isArray(row.subcategories) && row.subcategories.length ? row.subcategories.join(', ') : '—' }}
+            </span>
           </template>
 
           <template #cell-price="{ row }">

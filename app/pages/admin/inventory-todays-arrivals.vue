@@ -39,6 +39,7 @@ function statusBadge(status) {
 const tableColumns = [
   { key: "product", label: "Product" },
   { key: "category", label: "Category" },
+  { key: "subcategories", label: "Subcategories" },
   { key: "price", label: "Price" },
   { key: "stock", label: "Stock" },
   { key: "status", label: "Status" },
@@ -54,6 +55,7 @@ const rows = computed(() => {
     color: p.color,
     image: p.image,
     category: p.category?.name || "—",
+    subcategories: Array.isArray(p.subcategories) ? p.subcategories : [],
     price: formatCurrency(p.price),
     stock: p.stock,
     status: p.status,
@@ -114,6 +116,12 @@ const rows = computed(() => {
                 <p v-if="row.color" class="text-xs text-gray-500">{{ row.color }}</p>
               </div>
             </div>
+          </template>
+
+          <template #cell-subcategories="{ row }">
+            <span class="text-sm text-gray-600">
+              {{ Array.isArray(row.subcategories) && row.subcategories.length ? row.subcategories.join(', ') : '—' }}
+            </span>
           </template>
 
           <template #cell-price="{ row }">
