@@ -27,6 +27,7 @@ const editForm = ref({ name: "", description: "", subcategories: "", image: null
 const editImagePreview = ref(null);
 const editImageRemoved = ref(false);
 const editCategoryImageInput = ref(null);
+const savingCategory = ref(false);
 
 watch(refreshTrigger, () => {
   page.value = 1;
@@ -149,6 +150,13 @@ function handleRemoveEditImage() {
 }
 
 async function handleUpdateCategory() {
+  if (!editForm.value.name || !editForm.value.description) {
+    addToast("Name and description are required", "error");
+    return;
+  }
+
+  if (savingCategory.value) return;
+  savingCategory.value = true;
   try {
     const body = {
       name: editForm.value.name,
@@ -177,6 +185,8 @@ async function handleUpdateCategory() {
       error?.data?.statusMessage || "Unable to update category",
       "error",
     );
+  } finally {
+    savingCategory.value = false;
   }
 }
 
@@ -254,6 +264,7 @@ defineExpose({
       v-if="editingCategory"
       :show="!!editingCategory"
       title="Edit Category"
+      :saving="savingCategory"
       @close="editingCategory = null"
       @confirm="handleUpdateCategory"
     >

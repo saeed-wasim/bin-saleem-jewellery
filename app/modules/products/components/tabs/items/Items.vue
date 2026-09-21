@@ -28,6 +28,7 @@ const editImageRemoved = ref(false);
 const editItemImageInput = ref(null);
 const showDeleteConfirm = ref(false);
 const itemToDelete = ref(null);
+const savingItem = ref(false);
 const activeCategoryTab = ref("all");
 const categoriesRefreshTrigger = ref(0);
 const search = ref("");
@@ -185,6 +186,13 @@ function handleRemoveEditImage() {
 }
 
 async function handleUpdateItem() {
+  if (!editForm.value.name || !editForm.value.description || !editForm.value.price || !editForm.value.categoryId || editForm.value.stock === "") {
+    addToast("Name, description, price, stock quantity, and category are required", "error");
+    return;
+  }
+
+  if (savingItem.value) return;
+  savingItem.value = true;
   try {
     const body = {
       name: editForm.value.name,
@@ -221,6 +229,8 @@ async function handleUpdateItem() {
       error?.data?.statusMessage || "Unable to update item",
       "error",
     );
+  } finally {
+    savingItem.value = false;
   }
 }
 
@@ -335,6 +345,7 @@ defineExpose({
       v-if="editingItem"
       :show="!!editingItem"
       title="Edit Item"
+      :saving="savingItem"
       @close="editingItem = null"
       @confirm="handleUpdateItem"
     >

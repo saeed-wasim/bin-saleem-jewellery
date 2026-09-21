@@ -117,6 +117,8 @@ function removeCategorySubcategory(value) {
 }
 
 async function handleCreateCategory() {
+  if (isLoading.value) return;
+
   if (!categoryForm.value.name || !categoryForm.value.description) {
     addToast("Name and description are required", "error");
     return;
@@ -165,6 +167,8 @@ async function handleCreateCategory() {
 }
 
 async function handleCreateItem() {
+  if (isLoading.value) return;
+
   if (!itemForm.value.name || !itemForm.value.description || !itemForm.value.price || !itemForm.value.categoryId || itemForm.value.stock === "") {
     addToast("Name, description, price, stock quantity, and category are required", "error");
     return;
@@ -280,6 +284,7 @@ async function handleCreateItem() {
     <CommonDrawer
       :show="showCategoryModal"
       title="Add New Category"
+      :saving="isLoading"
       @close="showCategoryModal = false"
       @confirm="handleCreateCategory"
     >
@@ -394,6 +399,7 @@ async function handleCreateItem() {
     <CommonDrawer
       :show="showItemModal"
       title="Add New Item"
+      :saving="isLoading"
       @close="showItemModal = false"
       @confirm="handleCreateItem"
     >

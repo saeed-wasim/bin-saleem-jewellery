@@ -23,6 +23,7 @@ const statusFilter = ref("all");
 const search = ref("");
 const showEditModal = ref(false);
 const editForm = ref({ id: null, name: "", stock: 0, lowStockThreshold: 5 });
+const savingEdit = ref(false);
 const savingId = ref(null);
 
 const filters = [
@@ -111,6 +112,8 @@ async function handleSaveEdit() {
     addToast("Values cannot be negative", "error");
     return;
   }
+  if (savingEdit.value) return;
+  savingEdit.value = true;
   try {
     await apiFetch(`/api/inventory/${editForm.value.id}`, {
       method: "PATCH",
@@ -121,6 +124,8 @@ async function handleSaveEdit() {
     await Promise.all([refresh(), refreshSummary()]);
   } catch (err) {
     addToast(err?.data?.error || "Unable to update inventory", "error");
+  } finally {
+    savingEdit.value = false;
   }
 }
 
@@ -260,7 +265,7 @@ const tableColumns = [
       </div>
     </div>
 
-    <CommonDrawer :show="showEditModal" title="Edit Inventory" @close="showEditModal = false" @confirm="handleSaveEdit">
+    <CommonDrawer :show="showEditModal" title="Edit Inventory" :saving="savingEdit" @close="showEditModal = false" @confirm="handleSaveEdit">
       <form @submit.prevent="handleSaveEdit" class="space-y-4">
         <p class="text-sm font-medium text-gray-700">{{ editForm.name }}</p>
 
