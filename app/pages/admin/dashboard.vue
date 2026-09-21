@@ -248,7 +248,7 @@ function fulfillmentBadgeClass(status) {
         </div>
 
         <!-- Recent Orders -->
-        <div class="mt-6 rounded-xl border border-gray-200 bg-white p-5">
+        <div class="mt-6 rounded-xl border border-gray-200 bg-white p-5 overflow-x-auto">
           <div class="mb-4 flex items-center justify-between">
             <h3 class="text-sm font-semibold text-gray-700">Recent Orders</h3>
             <NuxtLink
